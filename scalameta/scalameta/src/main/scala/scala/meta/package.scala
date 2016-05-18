@@ -1,5 +1,7 @@
 package scala
 
+import scala.meta.internal.ast.Origin
+
 package object meta extends classifiers.Api with classifiers.Aliases
                        with dialects.Api with dialects.Aliases
                        with parsers.Api with parsers.Aliases

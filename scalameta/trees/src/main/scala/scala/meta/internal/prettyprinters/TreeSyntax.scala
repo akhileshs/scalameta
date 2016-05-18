@@ -20,6 +20,9 @@ import org.scalameta.invariants._
 import org.scalameta.{unreachable, debug}
 import scala.compat.Platform.EOL
 
+import scala.meta.inputs._
+import scala.meta.internal.tokens.TokenStreamPosition
+
 object TreeSyntax {
   def apply[T <: Tree](dialect: Dialect, options: Options): Syntax[T] = {
     object syntaxInstances {
@@ -539,6 +542,124 @@ object TreeSyntax {
         case importees                     => s("{ ", r(importees, ", "), " }")
       }
     }
+
+    def printTransformedTree[T <: Tree](orig: T, transformed: T): Show.Result = {
+      val sb = new StringBuilder
+      var pos = 0
+
+      def updatePos(t: Tree): Unit = {
+        t.origin match {
+          case Origin.Transformed(from, to) => updatePos(from)
+          case _ => pos = t.pos.start.offset
+        }
+      }
+
+      updatePos(orig)
+
+      def updateTree(t: Tree): Tree = {
+        t.origin match {
+          case Origin.Transformed(from, to) => updateTree(from)
+          case _ => t
+        }
+      }
+
+      def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
+        val x = updateTree(t1)       
+        
+        if (x.pos.start.offset - pos >= 0) sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
+        else sb.appendAll(x.pos.input.chars, 0, x.pos.start.offset)
+
+        (t1, t2) match {
+          case (_, Name.Indeterminate(a1)) =>
+            sb.append(a1)
+          case (_, Term.Name(a1)) =>
+            sb.append(a1)
+          case (_, Type.Name(a1)) =>
+            sb.append(a1)
+          case (_, Lit(a1)) =>
+            sb.append(a1)
+          case _ =>
+            t2.origin match {
+              case Origin.Transformed(from, to) => sb.append(to)
+              case _ => sb.append(t2)
+            }
+        }
+
+        pos = x.pos.end.offset     
+      }
+
+      def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
+        if (t1.isEmpty) {}
+        else {
+          for ((x0, x1) <- (t1 zip t2)) {
+            (x0, x1) match {
+              case (y0: Tree, y1: Tree) =>
+                appendResultTree(sb, y0, y1)
+                y0.parent.get match {
+                  case Term.Block(_) =>
+                    t1.last match {
+                      case (x: Tree) =>
+                        if (x eq y0) {                          
+                          pos = updateTree(y0).pos.end.offset
+
+                          if (updateTree(x).parent.get.pos.start.offset == -1) {                            
+                            while (pos < updateTree(x).pos.input.chars.length) {
+                              sb.append(updateTree(x).pos.input.chars(pos))                              
+                              pos += 1
+                            }
+                          }
+                          else {
+                            while (pos < updateTree(y0.parent.get).pos.end.offset) {
+                              sb.append(updateTree(y0).pos.input.chars(pos))                              
+                              pos += 1
+                            }
+                          }
+                        }
+                      case _ => {}
+                    }
+                  case _ => {}
+                }
+              case (y0: Seq[_], y1: Seq[_]) => appendResultSeqTree(sb, y0, y1)
+              case (y0: Option[_], y1: Option[_]) => appendResultSeqTree(sb, y0.toList, y1.toList)
+              case _ => {}
+            }
+          }
+        }       
+      }
+      
+      def appendRemainder(sb: StringBuilder, t: Tree): Unit = {
+        val x = updateTree(t)   
+        x match {
+          case Term.Name(_) => {}
+          case Type.Name(_) => {}
+          case Lit(_) => {}
+          case Term.Block(_) => {}
+          case _ =>
+            sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+        }
+      }
+
+      val l1 = orig.productIterator.toList
+      val l2 = transformed.productIterator.toList
+
+      (l1 zip l2) foreach {
+        /* put weird cases here first */
+        case (Lit(()), Lit(())) => {}
+        case (Ctor.Primary(mods0, _, paramss0), Ctor.Primary(mods1, _, paramss1)) =>
+          appendResultSeqTree(sb, mods0, mods1)
+          appendResultSeqTree(sb, paramss0, paramss1)
+        case (x: Tree, y: Tree) =>
+          appendResultTree(sb, x, y)
+        case (x: Seq[_], y: Seq[_])  =>
+          appendResultSeqTree(sb, x, y)
+        case (x: Option[_], y: Option[_]) =>
+          appendResultSeqTree(sb, x.toList, y.toList)
+        case _ => {}
+      }
+
+      appendRemainder(sb, orig)
+      s(sb.toString)
+    }
     // NOTE: This is the current state of the art of smart prettyprinting.
     // If we prettyprint a tree that's just been parsed with the same dialect,
     // then we retain formatting. Otherwise, we don't, even in the tiniest.
@@ -550,6 +671,12 @@ object TreeSyntax {
         // case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect =>
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
+        // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
+        case Origin.Transformed(from, to) =>
+
+
+          //val tmpTree = from.withOrigin(Origin.Parsed(input, dialect, TokenStreamPosition(from.tokens.toList(0).pos.start.offset, from.tokens.toList.length)))
+          printTransformedTree(from, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
       }
