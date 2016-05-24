@@ -73,6 +73,8 @@ trait InternalTree {
         Position.Range(input, startToken.start, endToken.end)
       case _ =>
         Position.None
+      case Origin.Parsed(_, _, pos) => pos
+      case _ => Position.None
     }
   }
 
