@@ -550,6 +550,7 @@ object TreeSyntax {
         // case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect =>
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
+        // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
       }
