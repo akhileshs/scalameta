@@ -163,5 +163,12 @@ class TransverserSuite extends FunSuite {
       case _ => assert(false)
 
     }
-  }   
+  }
+
+  test("Preserve formatting") {
+    val tree0 = "{ /* hello */ def foo(bar: Int) = bar }".parse[Term].get
+    val result1 = tree0 transform { case q"bar" => q"baz" }
+    assert(result1.toString == "{ /* hello */ def foo(baz: Int) = baz }")
+
+  }
 }
