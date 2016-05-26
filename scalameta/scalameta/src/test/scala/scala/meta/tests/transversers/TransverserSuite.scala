@@ -165,10 +165,54 @@ class TransverserSuite extends FunSuite {
     }
   }
 
-  test("Preserve formatting") {
+  test("Preserve formatting basic test") {
     val tree0 = "{ /* hello */ def foo(bar: Int) = bar }".parse[Term].get
     val result1 = tree0 transform { case q"bar" => q"baz" }
     assert(result1.toString == "{ /* hello */ def foo(baz: Int) = baz }")
-
   }
+
+  test("Basic transform tests") {
+    val tree0 = "{ /* hello */ def foo(bar: Int) = bar }".parse[Term].get
+    val result1 = tree0 transform { case q"bar" => q"bar" }
+    assert(result1.toString == tree0.toString)
+  }
+
+  test("weirdly indented code") {
+    val tree = """{
+      if (true) {
+           1
+      } else {
+        2
+
+        }
+
+    }""".parse[Stat].get
+    val result1 = tree transform { case q"true" => q"false" }
+    val s = """{
+      if (false) {
+           1
+      } else {
+        2
+
+        }
+
+    }"""
+    assert(result1.toString == s)
+  }
+
+  test("simple transform with match") {
+    val tree0 = """
+      def foo(bar: Int) = bar match {
+        case 1 => 1
+        case _ => 2
+        }""".parse[Stat].get
+    val result1 = tree0 transform { case q"bar" => q"baz" }
+    val s = """
+      def foo(baz: Int) = baz match {
+        case 1 => 1
+        case _ => 2
+        }"""
+
+    assert(result1.toString == s)
+  }  
 }
