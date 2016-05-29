@@ -8,7 +8,7 @@ import scala.meta.internal.semantic._
 import scala.meta.internal.prettyprinters._
 import scala.meta.internal.ast.Origin
 
-class TransverserSuite extends FunSuite {
+class TransverserSuite extends FunSuite {  
   test("Traverser Ok") {
     val tree0 = q"""
       def foo(x: x)(x: Int) = x + x
@@ -165,6 +165,7 @@ class TransverserSuite extends FunSuite {
     }
   }
 
+  
   test("Preserve formatting basic test") {
     val tree0 = "{ /* hello */ def foo(bar: Int) = bar }".parse[Term].get
     val result1 = tree0 transform { case q"bar" => q"baz" }
@@ -214,5 +215,27 @@ class TransverserSuite extends FunSuite {
         }"""
 
     assert(result1.toString == s)
-  }  
+  }
+
+  test("Simple if test") {
+    val tree0 = """ if (true) 1 else 2""".parse[Term].get
+    val result1 = tree0 transform { case q"true" => q"false" }
+    val s = """ if (false) 1 else 2"""
+    assert(result1.toString == s)
+  }
+
+  test("Weirdly indented if") {
+    val tree0 = """if          (x)
+       true
+else
+               false
+""".parse[Term].get
+    val result1 = tree0 transform { case q"true" => q"false" }
+    val s = """if          (x)
+       false
+else
+               false
+"""
+    assert(result1.toString == s)
+  }
 }
