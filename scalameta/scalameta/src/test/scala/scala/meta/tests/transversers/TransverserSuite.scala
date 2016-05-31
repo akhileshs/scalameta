@@ -8,7 +8,7 @@ import scala.meta.internal.semantic._
 import scala.meta.internal.prettyprinters._
 import scala.meta.internal.ast.Origin
 
-class TransverserSuite extends FunSuite {  
+class TransverserSuite extends FunSuite {
   test("Traverser Ok") {
     val tree0 = q"""
       def foo(x: x)(x: Int) = x + x
@@ -152,6 +152,8 @@ class TransverserSuite extends FunSuite {
     assert(result1.toString == "List(x, +, y)")
   }
 
+   
+
   test("Origin preserving transforms") {
     val tree0 = "{ /* hello */ def foo(bar: Int) = bar }".parse[Term].get
     val result1 = tree0 transform { case q"bar" => q"baz" }
@@ -222,20 +224,81 @@ class TransverserSuite extends FunSuite {
     val result1 = tree0 transform { case q"true" => q"false" }
     val s = """ if (false) 1 else 2"""
     assert(result1.toString == s)
-  }
+  }   
 
   test("Weirdly indented if") {
-    val tree0 = """if          (x)
-       true
-else
-               false
-""".parse[Term].get
-    val result1 = tree0 transform { case q"true" => q"false" }
-    val s = """if          (x)
-       false
-else
-               false
-"""
+    val tree0 = """if      (x)
+        y
+    else
+             z
+    """.parse[Term].get
+
+    val result1 = tree0 transform { case q"y" => q"b" }
+    val s = """if      (x)
+        b
+    else
+             z
+    """
+    assert(result1.toString == s)
+  }   
+
+  test("Basic transform case with match") {
+    val tree0 = """
+      x match {
+        case 1 => 2
+        case 2 => 3
+        case _ => 4
+      }
+      """.parse[Term].get
+    val result1 = tree0 transform { case q"1" => q"5"}
+    val s = """
+      x match {
+        case 5 => 2
+        case 2 => 3
+        case _ => 4
+      }
+      """
+    assert(result1.toString == s)
+  }
+
+  test("transform body of match") {
+    val tree0 = """
+      x match {
+         case 1     =>          2
+         case 3 => 4
+         case 5 => 6
+      }
+    """.parse[Term].get
+    val result1 = tree0 transform { case q"2" => q"9" }
+    val s = """
+      x match {
+         case 1     =>          9
+         case 3 => 4
+         case 5 => 6
+      }
+    """
+    assert(result1.toString == s)
+  }
+
+  test("basic block test") {
+    val tree0 = "{ /* hello */ if (x) true else false }".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"y" }
+    val s = "{ /* hello */ if (y) true else false }"
+    assert(result1.toString == s)
+  }
+
+  test("few more block tests") {
+    val tree0 = """{
+      /* hello */
+      a = y
+      (a,          z)
+    }""".parse[Term].get
+    val result1 = tree0 transform { case q"a" => q"x" }
+    val s = """{
+      /* hello */
+      x = y
+      (x,          z)
+    }"""
     assert(result1.toString == s)
   }
 }
