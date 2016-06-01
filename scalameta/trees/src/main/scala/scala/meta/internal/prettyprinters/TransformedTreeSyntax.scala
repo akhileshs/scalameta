@@ -812,6 +812,142 @@ object TransformedTreeSyntax {
         else sb.append(new String(origInputChars, stats0.last.pos.end.offset, orig.pos.end.offset - stats0.last.pos.end.offset))
 
         s(sb.toString)
+
+      /* TYPE CASES */
+      case (Type.Name(v0), Type.Name(v1)) =>
+        val sb = new StringBuilder
+
+        if (v0 ne v1) sb.append(v1)
+        else sb.append(v0)
+
+        s(sb.toString)
+      case (Type.Select(qual0, name0), Type.Select(qual1, name1)) =>
+        val sb = new StringBuilder
+        if (qual0 ne qual1) {
+          sb.append(
+            new String(origInputChars, origPosStart, qual0.pos.start.offset - origPosStart) +
+              (qual1)
+          )
+        }
+        else sb.append(new String(origInputChars, origPosStart, qual0.pos.end.offset - origPosStart))
+
+        if (name0 ne name1) {
+          sb.append(
+            new String(origInputChars, qual0.pos.end.offset, name0.pos.start.offset - qual0.pos.end.offset) +
+              (name1) +
+              new String(origInputChars, name0.pos.end.offset, orig.pos.end.offset - name0.pos.end.offset)
+          )
+        }
+        else sb.append(new String(origInputChars, qual0.pos.end.offset, orig.pos.end.offset - qual0.pos.end.offset))
+
+        s(sb.toString)
+      case (Type.Project(qual0, name0), Type.Project(qual1, name1)) =>
+        val sb = new StringBuilder
+        if (qual0 ne qual1) {
+          sb.append(
+            new String(origInputChars, origPosStart, qual0.pos.start.offset - origPosStart) +
+              (qual1)
+          )
+        }
+        else sb.append(new String(origInputChars, origPosStart, qual0.pos.end.offset - origPosStart))
+
+        if (name0 ne name1) {
+          sb.append(
+            new String(origInputChars, qual0.pos.end.offset, name0.pos.start.offset - qual0.pos.end.offset) +
+              (name1) +
+              new String(origInputChars, name0.pos.end.offset, orig.pos.end.offset - name0.pos.end.offset)
+          )
+        }
+        else sb.append(new String(origInputChars, qual0.pos.end.offset, orig.pos.end.offset - qual0.pos.end.offset))
+
+        s(sb.toString)
+      case (Type.Singleton(ref0), Type.Singleton(ref1)) =>
+        val sb = new StringBuilder
+        if (ref0 ne ref1) {
+          sb.append(
+            new String(origInputChars, origPosStart, ref0.pos.start.offset - origPosStart) +
+              (ref1) +
+              new String(origInputChars, ref0.pos.end.offset, orig.pos.end.offset - ref0.pos.end.offset)
+          )
+        }
+        else sb.append(orig.toString)
+
+        s(sb.toString)
+      case (Type.ApplyInfix(lhs0, op0, rhs0), Type.ApplyInfix(lhs1, op1, rhs1)) =>
+        val sb = new StringBuilder
+        if (lhs0 ne lhs1) {
+          sb.append(
+            new String(origInputChars, origPosStart, lhs0.pos.start.offset - origPosStart) +
+              (lhs1)
+          )
+        }
+        else sb.append(new String(origInputChars, origPosStart, lhs0.pos.end.offset - origPosStart))
+
+        if (op0 ne op1) {
+          sb.append(
+            new String(origInputChars, lhs0.pos.end.offset, op0.pos.start.offset - lhs0.pos.end.offset) +
+              (op1)
+          )
+        }
+        else sb.append(new String(origInputChars, lhs0.pos.end.offset, op0.pos.end.offset - lhs0.pos.end.offset))
+
+        if (rhs0 ne rhs1) {
+          sb.append(
+            new String(origInputChars, op0.pos.end.offset, rhs0.pos.start.offset - op0.pos.end.offset) +
+              (rhs1)
+          )
+        }
+        else sb.append(new String(origInputChars, op0.pos.end.offset, orig.pos.end.offset - op0.pos.end.offset))
+        s(sb.toString)
+      case (Type.Tuple(elements0), Type.Tuple(elements1)) =>
+        val sb = new StringBuilder        
+        
+        if (elements0.head ne elements1.head) sb.append(
+          new String(origInputChars, origPosStart, elements0.head.pos.start.offset - origPosStart) +
+            (elements1.head)
+        )
+        else sb.append(new String(origInputChars, origPosStart, elements0.head.pos.end.offset - origPosStart))
+        
+        for (List(elements00, elements01) <- (elements0 zip elements1).grouped(2)) {
+          if (elements01._1 ne elements01._2) sb.append(new String(origInputChars, elements00._1.pos.end.offset, elements01._1.pos.start.offset - elements00._1.pos.end.offset) + (elements01._2))
+          else sb.append("")
+        }
+
+        if (elements0.length > 2) {
+          if (elements0.last ne elements1.last) sb.append(
+            new String(origInputChars, elements0(elements0.length - 2).pos.end.offset, elements0.last.pos.start.offset - elements0(elements0.length - 2).pos.end.offset) +
+              (elements1.last) +
+              new String(origInputChars, elements0.last.pos.end.offset, orig.pos.end.offset - elements0.last.pos.end.offset)
+          )
+          else sb.append("")
+        }
+        else sb.append(new String(origInputChars, elements0.last.pos.end.offset, orig.pos.end.offset - elements0.last.pos.end.offset))
+
+        s(sb.toString)
+      case (Type.Arg.ByName(tpe0), Type.Arg.ByName(tpe1)) =>
+        val sb = new StringBuilder
+        if (tpe0 ne tpe1) {
+          sb.append(
+            new String(origInputChars, origPosStart, tpe0.pos.start.offset - origPosStart) +
+              (tpe1) +
+              new String(origInputChars, tpe0.pos.end.offset, orig.pos.end.offset - tpe0.pos.end.offset)
+          )
+        }
+        else sb.append(orig.toString)
+
+        s(sb.toString)
+      case (Type.Arg.Repeated(tpe0), Type.Arg.Repeated(tpe1)) =>
+        val sb = new StringBuilder
+        if (tpe0 ne tpe1) {
+          sb.append(
+            new String(origInputChars, origPosStart, tpe0.pos.start.offset - origPosStart) +
+              (tpe1) +
+              new String(origInputChars, tpe0.pos.end.offset, orig.pos.end.offset - tpe0.pos.end.offset)
+          )
+        }
+        else sb.append(orig.toString)
+
+        s(sb.toString)
       case _ => s("$hole")
     }
   }
