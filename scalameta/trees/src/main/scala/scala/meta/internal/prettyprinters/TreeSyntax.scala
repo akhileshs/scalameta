@@ -19,6 +19,7 @@ import org.scalameta.collections._
 import org.scalameta.invariants._
 import org.scalameta.{unreachable, debug}
 import scala.compat.Platform.EOL
+import TransformedTreeSyntax.{ printTransformedTree => pr }
 
 object TreeSyntax {
   def apply[T <: Tree](dialect: Dialect, options: Options): Syntax[T] = {
@@ -538,8 +539,6 @@ object TreeSyntax {
         case (t: Importee.Wildcard) :: Nil => s(t)
         case importees                     => s("{ ", r(importees, ", "), " }")
       }
-    }
-
     // NOTE: This is the current state of the art of smart prettyprinting.
     // If we prettyprint a tree that's just been parsed with the same dialect,
     // then we retain formatting. Otherwise, we don't, even in the tiniest.
@@ -552,6 +551,8 @@ object TreeSyntax {
         case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect =>
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
+        case Origin.Transformed(tree) =>
+          pr(tree, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
       }
