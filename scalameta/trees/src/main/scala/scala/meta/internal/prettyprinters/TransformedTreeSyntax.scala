@@ -1584,6 +1584,724 @@ object TransformedTreeSyntax {
         else sb.append(orig.toString)
 
         s(sb.toString)
+
+      /* DECL cases */
+      case (Decl.Val(mods0, pats0, decltpe0), Decl.Val(mods1, pats1, decltpe1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+
+          if (pats0.head ne pats1.head) sb.append(
+            new String(origInputChars, mods0.last.pos.end.offset, pats0.head.pos.start.offset - mods0.last.pos.end.offset) +
+              (pats1.head)
+          )
+          else sb.append(new String(origInputChars, mods0.last.pos.end.offset, pats0.head.pos.end.offset - mods0.last.pos.end.offset))
+          
+          for (List(pats00, pats01) <- (pats0 zip pats1).grouped(2)) {
+            if (pats01._1 ne pats01._2) sb.append(new String(origInputChars, pats00._1.pos.end.offset, pats01._1.pos.start.offset - pats00._1.pos.end.offset) + (pats01._2))
+            else sb.append("")
+          }
+
+          if (pats0.length > 2) {
+            if (pats0.last ne pats1.last) sb.append(
+              new String(origInputChars, pats0(pats0.length - 2).pos.end.offset, pats0.last.pos.start.offset - pats0(pats0.length - 2).pos.end.offset) +
+                (pats1.last)
+                // new String(origInputChars, pats0.last.pos.end.offset, orig.pos.end.offset - pats0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, pats0.last.pos.end.offset, orig.pos.end.offset - pats0.last.pos.end.offset))
+
+          if (decltpe0 ne decltpe1) {
+            sb.append(
+              new String(origInputChars, pats0.last.pos.end.offset, decltpe0.pos.start.offset - pats0.last.pos.end.offset) +
+                (decltpe1) +
+                new String(origInputChars, decltpe0.pos.end.offset, orig.pos.end.offset - decltpe0.pos.end.offset)
+            )
+          }
+          else sb.append(orig.toString)
+        }
+        s(sb.toString)
+      case (Decl.Var(mods0, pats0, decltpe0), Decl.Var(mods1, pats1, decltpe1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+
+          if (pats0.head ne pats1.head) sb.append(
+            new String(origInputChars, mods0.last.pos.end.offset, pats0.head.pos.start.offset - mods0.last.pos.end.offset) +
+              (pats1.head)
+          )
+          else sb.append(new String(origInputChars, mods0.last.pos.end.offset, pats0.head.pos.end.offset - mods0.last.pos.end.offset))
+          
+          for (List(pats00, pats01) <- (pats0 zip pats1).grouped(2)) {
+            if (pats01._1 ne pats01._2) sb.append(new String(origInputChars, pats00._1.pos.end.offset, pats01._1.pos.start.offset - pats00._1.pos.end.offset) + (pats01._2))
+            else sb.append("")
+          }
+
+          if (pats0.length > 2) {
+            if (pats0.last ne pats1.last) sb.append(
+              new String(origInputChars, pats0(pats0.length - 2).pos.end.offset, pats0.last.pos.start.offset - pats0(pats0.length - 2).pos.end.offset) +
+                (pats1.last)
+                // new String(origInputChars, pats0.last.pos.end.offset, orig.pos.end.offset - pats0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, pats0.last.pos.end.offset, orig.pos.end.offset - pats0.last.pos.end.offset))
+
+          if (decltpe0 ne decltpe1) {
+            sb.append(
+              new String(origInputChars, pats0.last.pos.end.offset, decltpe0.pos.start.offset - pats0.last.pos.end.offset) +
+                (decltpe1) +
+                new String(origInputChars, decltpe0.pos.end.offset, orig.pos.end.offset - decltpe0.pos.end.offset)
+            )
+          }
+          else sb.append(orig.toString)
+        }
+        s(sb.toString)
+      case (Decl.Def(mods0, name0, tparams0, paramss0, decltpe0), Decl.Def(mods1, name1, tparams1, paramss1, decltpe1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (tparams0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (tparams0.head ne tparams1.head) sb.append(
+            new String(origInputChars, name0.pos.end.offset, tparams0.head.pos.start.offset - name0.pos.end.offset) +
+              (tparams1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, tparams0.head.pos.end.offset - origPosStart))
+          
+          for (List(tparams00, tparams01) <- (tparams0 zip tparams1).grouped(2)) {
+            if (tparams01._1 ne tparams01._2) sb.append(new String(origInputChars, tparams00._1.pos.end.offset, tparams01._1.pos.start.offset - tparams00._1.pos.end.offset) + (tparams01._2))
+            else sb.append("")
+          }
+
+          if (tparams0.length > 2) {
+            if (tparams0.last ne tparams1.last) sb.append(
+              new String(origInputChars, tparams0(tparams0.length - 2).pos.end.offset, tparams0.last.pos.start.offset - tparams0(tparams0.length - 2).pos.end.offset) +
+                (tparams1.last)
+                // new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset))
+        }
+
+        if (paramss0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (paramss0.head ne paramss1.head) sb.append(
+            new String(origInputChars, tparams0.last.pos.end.offset, paramss0.head.head.pos.start.offset - tparams0.last.pos.end.offset) +
+              (paramss1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, paramss0.head.head.pos.end.offset - origPosStart))
+          
+          for (List(paramss00, paramss01) <- (paramss0 zip paramss1).grouped(2)) {
+            if (paramss01._1 ne paramss01._2) sb.append(new String(origInputChars, paramss00._1.last.pos.end.offset, paramss01._1.head.pos.start.offset - paramss00._1.last.pos.end.offset) + (paramss01._2))
+            else sb.append("")
+          }
+
+          if (paramss0.length > 2) {
+            if (paramss0.last ne paramss1.last) sb.append(
+              new String(origInputChars, paramss0(paramss0.length - 2).last.pos.end.offset, paramss0.last.last.pos.start.offset - paramss0(paramss0.length - 2).last.pos.end.offset) +
+                (paramss1.last)
+                // new String(origInputChars, paramss0.last.pos.end.offset, orig.pos.end.offset - paramss0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, paramss0.last.pos.end.offset, orig.pos.end.offset - paramss0.last.pos.end.offset))
+        }
+
+        if (decltpe0 ne decltpe1) sb.append(
+          new String(origInputChars, paramss0.last.last.pos.end.offset, decltpe0.pos.start.offset - paramss0.last.last.pos.end.offset) +
+            (decltpe1) +
+            new String(origInputChars, decltpe0.pos.end.offset, orig.pos.end.offset - decltpe0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
+      case (Decl.Type(mods0, name0, tparams0, bounds0), Decl.Type(mods1, name1, tparams1, bounds1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (tparams0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (tparams0.head ne tparams1.head) sb.append(
+            new String(origInputChars, name0.pos.end.offset, tparams0.head.pos.start.offset - name0.pos.end.offset) +
+              (tparams1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, tparams0.head.pos.end.offset - origPosStart))
+          
+          for (List(tparams00, tparams01) <- (tparams0 zip tparams1).grouped(2)) {
+            if (tparams01._1 ne tparams01._2) sb.append(new String(origInputChars, tparams00._1.pos.end.offset, tparams01._1.pos.start.offset - tparams00._1.pos.end.offset) + (tparams01._2))
+            else sb.append("")
+          }
+
+          if (tparams0.length > 2) {
+            if (tparams0.last ne tparams1.last) sb.append(
+              new String(origInputChars, tparams0(tparams0.length - 2).pos.end.offset, tparams0.last.pos.start.offset - tparams0(tparams0.length - 2).pos.end.offset) +
+                (tparams1.last)
+                // new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset))
+        }
+
+        if (bounds0 ne bounds1) sb.append(
+          new String(origInputChars, tparams0.last.pos.end.offset, bounds0.pos.start.offset - tparams0.last.pos.end.offset) +
+            (bounds1) +
+            new String(origInputChars, bounds0.pos.end.offset, orig.pos.end.offset - bounds0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
+      case (Defn.Val(mods0, pats0, decltpe0, rhs0), Defn.Val(mods1, pats1, decltpe1, rhs1)) =>
+        val sb = new StringBuilder
+        
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+          
+
+        } else { 
+          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+
+          if (pats0.head ne pats1.head) sb.append(
+            new String(origInputChars, mods0.last.pos.end.offset, pats0.head.pos.start.offset - mods0.last.pos.end.offset) +
+              (pats1.head)
+          )
+          else sb.append(new String(origInputChars, mods0.last.pos.end.offset, pats0.head.pos.end.offset - mods0.last.pos.end.offset))
+          
+          for (List(pats00, pats01) <- (pats0 zip pats1).grouped(2)) {
+            if (pats01._1 ne pats01._2) sb.append(new String(origInputChars, pats00._1.pos.end.offset, pats01._1.pos.start.offset - pats00._1.pos.end.offset) + (pats01._2))
+            else sb.append("")
+          }
+
+          if (pats0.length > 2) {
+            if (pats0.last ne pats1.last) sb.append(
+              new String(origInputChars, pats0(pats0.length - 2).pos.end.offset, pats0.last.pos.start.offset - pats0(pats0.length - 2).pos.end.offset) +
+                (pats1.last)
+                // new String(origInputChars, pats0.last.pos.end.offset, orig.pos.end.offset - pats0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, pats0.last.pos.end.offset, orig.pos.end.offset - pats0.last.pos.end.offset))
+
+          /*
+           if (decltpe0 ne decltpe1) {
+           sb.append(
+           new String(origInputChars, pats0.last.pos.end.offset, decltpe0.pos.start.offset - pats0.last.pos.end.offset) +
+           (decltpe1)                
+           )
+           }
+           else sb.append(orig.toString)
+           */
+
+          if (rhs0 ne rhs1) {
+            sb.append(
+              new String(origInputChars, pats0.last.pos.end.offset, rhs0.pos.start.offset - pats0.last.pos.end.offset) +
+                (rhs1) +
+                new String(origInputChars, rhs0.pos.end.offset, orig.pos.end.offset - rhs0.pos.end.offset)
+            )
+          }
+          else sb.append(orig.toString)
+          // new String(origInputChars, decltpe0.pos.end.offset, orig.pos.end.offset - decltpe0.pos.end.offset)
+        }  
+
+        s(sb.toString)
+      case (Defn.Def(mods0, name0, tparams0, paramss0, decltpe0, body0), Defn.Def(mods1, name1, tparams1, paramss1, decltpe1, body1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (tparams0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (tparams0.head ne tparams1.head) sb.append(
+            new String(origInputChars, name0.pos.end.offset, tparams0.head.pos.start.offset - name0.pos.end.offset) +
+              (tparams1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, tparams0.head.pos.end.offset - origPosStart))
+          
+          for (List(tparams00, tparams01) <- (tparams0 zip tparams1).grouped(2)) {
+            if (tparams01._1 ne tparams01._2) sb.append(new String(origInputChars, tparams00._1.pos.end.offset, tparams01._1.pos.start.offset - tparams00._1.pos.end.offset) + (tparams01._2))
+            else sb.append("")
+          }
+
+          if (tparams0.length > 2) {
+            if (tparams0.last ne tparams1.last) sb.append(
+              new String(origInputChars, tparams0(tparams0.length - 2).pos.end.offset, tparams0.last.pos.start.offset - tparams0(tparams0.length - 2).pos.end.offset) +
+                (tparams1.last)
+                // new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset))
+        }
+
+        if (paramss0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (paramss0.head ne paramss1.head) sb.append(
+            new String(origInputChars, tparams0.last.pos.end.offset, paramss0.head.head.pos.start.offset - tparams0.last.pos.end.offset) +
+              (paramss1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, paramss0.head.head.pos.end.offset - origPosStart))
+          
+          for (List(paramss00, paramss01) <- (paramss0 zip paramss1).grouped(2)) {
+            if (paramss01._1 ne paramss01._2) sb.append(new String(origInputChars, paramss00._1.last.pos.end.offset, paramss01._1.head.pos.start.offset - paramss00._1.last.pos.end.offset) + (paramss01._2))
+            else sb.append("")
+          }
+
+          if (paramss0.length > 2) {
+            if (paramss0.last ne paramss1.last) sb.append(
+              new String(origInputChars, paramss0(paramss0.length - 2).last.pos.end.offset, paramss0.last.last.pos.start.offset - paramss0(paramss0.length - 2).last.pos.end.offset) +
+                (paramss1.last)
+                // new String(origInputChars, paramss0.last.pos.end.offset, orig.pos.end.offset - paramss0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, paramss0.last.pos.end.offset, orig.pos.end.offset - paramss0.last.pos.end.offset))
+        }
+
+        if (body0 ne body1) sb.append(
+          new String(origInputChars, paramss0.last.last.pos.end.offset, body0.pos.start.offset - paramss0.last.last.pos.end.offset) +
+            (body1) +
+            new String(origInputChars, body0.pos.end.offset, orig.pos.end.offset - body0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
+      case (Defn.Type(mods0, name0, tparams0, body0), Defn.Type(mods1, name1, tparams1, body1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (tparams0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (tparams0.head ne tparams1.head) sb.append(
+            new String(origInputChars, name0.pos.end.offset, tparams0.head.pos.start.offset - name0.pos.end.offset) +
+              (tparams1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, tparams0.head.pos.end.offset - origPosStart))
+          
+          for (List(tparams00, tparams01) <- (tparams0 zip tparams1).grouped(2)) {
+            if (tparams01._1 ne tparams01._2) sb.append(new String(origInputChars, tparams00._1.pos.end.offset, tparams01._1.pos.start.offset - tparams00._1.pos.end.offset) + (tparams01._2))
+            else sb.append("")
+          }
+
+          if (tparams0.length > 2) {
+            if (tparams0.last ne tparams1.last) sb.append(
+              new String(origInputChars, tparams0(tparams0.length - 2).pos.end.offset, tparams0.last.pos.start.offset - tparams0(tparams0.length - 2).pos.end.offset) +
+                (tparams1.last)
+                // new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset))
+        }
+
+        if (body0 ne body1) sb.append(
+          new String(origInputChars, tparams0.last.pos.end.offset, body0.pos.start.offset - tparams0.last.pos.end.offset) +
+            (body1) +
+            new String(origInputChars, body0.pos.end.offset, orig.pos.end.offset - body0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
+      case (Defn.Class(mods0, name0, tparams0, ctor0, templ0), Defn.Class(mods1, name1, tparams1, ctor1, templ1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {          
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (tparams0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (tparams0.head ne tparams1.head) sb.append(
+            new String(origInputChars, name0.pos.end.offset, tparams0.head.pos.start.offset - name0.pos.end.offset) +
+              (tparams1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, tparams0.head.pos.end.offset - origPosStart))
+          
+          for (List(tparams00, tparams01) <- (tparams0 zip tparams1).grouped(2)) {
+            if (tparams01._1 ne tparams01._2) sb.append(new String(origInputChars, tparams00._1.pos.end.offset, tparams01._1.pos.start.offset - tparams00._1.pos.end.offset) + (tparams01._2))
+            else sb.append("")
+          }
+
+          if (tparams0.length > 2) {
+            if (tparams0.last ne tparams1.last) sb.append(
+              new String(origInputChars, tparams0(tparams0.length - 2).pos.end.offset, tparams0.last.pos.start.offset - tparams0(tparams0.length - 2).pos.end.offset) +
+                (tparams1.last)
+                // new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset))
+        }
+
+        if (ctor0 ne ctor1) sb.append(
+          new String(origInputChars, tparams0.last.pos.end.offset, ctor0.pos.start.offset - tparams0.last.pos.end.offset) +
+            (ctor1)
+            // new String(origInputChars, ctor0.pos.end.offset, orig.pos.end.offset - ctor0.pos.end.offset)
+        )
+        else sb.append("")
+
+        if (templ0 ne templ1) sb.append(
+          new String(origInputChars, ctor0.pos.end.offset, templ0.pos.start.offset - ctor0.pos.end.offset) +
+            (templ1)
+            // new String(origInputChars, templ0.pos.end.offset, orig.pos.end.offset - templ0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
+
+      case (Defn.Trait(mods0, name0, tparams0, ctor0, templ0), Defn.Trait(mods1, name1, tparams1, ctor1, templ1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (tparams0.length == 0) {
+          /* check other fields */
+          sb.append("")
+        } else {
+          if (tparams0.head ne tparams1.head) sb.append(
+            new String(origInputChars, name0.pos.end.offset, tparams0.head.pos.start.offset - name0.pos.end.offset) +
+              (tparams1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, tparams0.head.pos.end.offset - origPosStart))
+          
+          for (List(tparams00, tparams01) <- (tparams0 zip tparams1).grouped(2)) {
+            if (tparams01._1 ne tparams01._2) sb.append(new String(origInputChars, tparams00._1.pos.end.offset, tparams01._1.pos.start.offset - tparams00._1.pos.end.offset) + (tparams01._2))
+            else sb.append("")
+          }
+
+          if (tparams0.length > 2) {
+            if (tparams0.last ne tparams1.last) sb.append(
+              new String(origInputChars, tparams0(tparams0.length - 2).pos.end.offset, tparams0.last.pos.start.offset - tparams0(tparams0.length - 2).pos.end.offset) +
+                (tparams1.last)
+                // new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, tparams0.last.pos.end.offset, orig.pos.end.offset - tparams0.last.pos.end.offset))
+        }
+
+        if (ctor0 ne ctor1) sb.append(
+          new String(origInputChars, tparams0.last.pos.end.offset, ctor0.pos.start.offset - tparams0.last.pos.end.offset) +
+            (ctor1)
+            // new String(origInputChars, ctor0.pos.end.offset, orig.pos.end.offset - ctor0.pos.end.offset)
+        )
+        else sb.append("")
+
+        if (templ0 ne templ1) sb.append(
+          new String(origInputChars, ctor0.pos.end.offset, templ0.pos.start.offset - ctor0.pos.end.offset) +
+            (templ1)
+            // new String(origInputChars, templ0.pos.end.offset, orig.pos.end.offset - templ0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
+      case (Defn.Object(mods0, name0, templ0), Defn.Object(mods1, name1, templ1)) =>
+        val sb = new StringBuilder
+        if (mods0.length == 0) {
+          /* check other fields */
+          sb.append("")
+
+        } else {
+          if (mods0.head ne mods1.head) sb.append(
+            new String(origInputChars, origPosStart, mods0.head.pos.start.offset - origPosStart) +
+              (mods1.head)
+          )
+          else sb.append(new String(origInputChars, origPosStart, mods0.head.pos.end.offset - origPosStart))
+          
+          for (List(mods00, mods01) <- (mods0 zip mods1).grouped(2)) {
+            if (mods01._1 ne mods01._2) sb.append(new String(origInputChars, mods00._1.pos.end.offset, mods01._1.pos.start.offset - mods00._1.pos.end.offset) + (mods01._2))
+            else sb.append("")
+          }
+
+          if (mods0.length > 2) {
+            if (mods0.last ne mods1.last) sb.append(
+              new String(origInputChars, mods0(mods0.length - 2).pos.end.offset, mods0.last.pos.start.offset - mods0(mods0.length - 2).pos.end.offset) +
+                (mods1.last)
+                // new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset)
+            )
+            else sb.append("")
+          }
+          else sb.append("") // sb.append(new String(origInputChars, mods0.last.pos.end.offset, orig.pos.end.offset - mods0.last.pos.end.offset))
+        }
+
+        if (name0 ne name1) sb.append(
+          new String(origInputChars, mods0.last.pos.end.offset, name0.pos.start.offset - mods0.last.pos.end.offset) +
+            (name1)
+        )
+        else sb.append("")
+
+        if (templ0 ne templ1) sb.append(
+          new String(origInputChars, name0.pos.end.offset, templ0.pos.start.offset - name0.pos.end.offset) +
+            (templ1)
+            // new String(origInputChars, templ0.pos.end.offset, orig.pos.end.offset - templ0.pos.end.offset)
+        )
+        else sb.append("")
+
+        s(sb.toString)
       case _ => s("$hole")
     }
   }
