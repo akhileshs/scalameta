@@ -539,6 +539,7 @@ object TreeSyntax {
         case (t: Importee.Wildcard) :: Nil => s(t)
         case importees                     => s("{ ", r(importees, ", "), " }")
       }
+    }
     // NOTE: This is the current state of the art of smart prettyprinting.
     // If we prettyprint a tree that's just been parsed with the same dialect,
     // then we retain formatting. Otherwise, we don't, even in the tiniest.

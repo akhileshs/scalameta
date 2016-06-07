@@ -56,7 +56,9 @@ class TransverserSuite extends FunSuite {
       |???
     """.trim.stripMargin)
   }
+   
 
+  
   test("Transformer Ok") {
     val tree0 = q"""
       def foo(x: x)(x: Int) = x + x
@@ -133,15 +135,16 @@ class TransverserSuite extends FunSuite {
     """.trim.stripMargin)
   }
 
+   
   test("Tree.transform") {
-    val tree0 = q"x + y"
+    val tree0 = "x + y".parse[Term].get
     val tree1 = tree0.transform { case Term.Name(s) => Term.Name(s + s) }
     assert(tree1.toString == "xx ++ yy")
   }
 
   test("Tree.traverse") {
     var cnt = 0
-    val tree0 = q"x + y"
+    val tree0 = "x + y".parse[Term].get
     tree0.traverse { case Term.Name(s) => cnt += 1 }
     assert(cnt == 3)
   }
@@ -167,7 +170,6 @@ class TransverserSuite extends FunSuite {
     }
   }
 
-  
   test("Preserve formatting basic test") {
     val tree0 = "{ /* hello */ def foo(bar: Int) = bar }".parse[Term].get
     val result1 = tree0 transform { case q"bar" => q"baz" }
@@ -179,7 +181,7 @@ class TransverserSuite extends FunSuite {
     val result1 = tree0 transform { case q"bar" => q"bar" }
     assert(result1.toString == tree0.toString)
   }
-
+   
   test("weirdly indented code") {
     val tree = """{
       if (true) {
@@ -202,7 +204,7 @@ class TransverserSuite extends FunSuite {
     }"""
     assert(result1.toString == s)
   }
-
+   
   test("simple transform with match") {
     val tree0 = """
       def foo(bar: Int) = bar match {
@@ -218,7 +220,7 @@ class TransverserSuite extends FunSuite {
 
     assert(result1.toString == s)
   }
-
+   
   test("Simple if test") {
     val tree0 = """ if (true) 1 else 2""".parse[Term].get
     val result1 = tree0 transform { case q"true" => q"false" }
@@ -260,7 +262,7 @@ class TransverserSuite extends FunSuite {
       """
     assert(result1.toString == s)
   }
-
+   
   test("transform body of match") {
     val tree0 = """
       x match {
@@ -300,5 +302,26 @@ class TransverserSuite extends FunSuite {
       (x,          z)
     }"""
     assert(result1.toString == s)
+   }   
+
+  test("nested block test") {
+    val tree0 = """
+    if (x > 10) {
+      if (y > 10) {
+        x
+      }
+    }
+    """.parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"a" }
+    val s = """
+    if (a > 10) {
+      if (y > 10) {
+        a
+      }
+    }
+    """
+    assert(result1.toString == s)
+
+
   }
 }
