@@ -321,7 +321,15 @@ class TransverserSuite extends FunSuite {
     }
     """
     assert(result1.toString == s)
-
-
   }
+
+  test("class test") {
+    val tree0 = "class C(x: Int)".parse[Stat].get
+    val result1 = tree0 transform { case t"C" => t"D" }
+    val result2 = tree0 transform { case q"x" => q"y" }
+    val s1 = "class D(x: Int)"
+    val s2 = "class C(y: Int)"
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString) 
+  }  
 }
