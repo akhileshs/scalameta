@@ -331,5 +331,14 @@ class TransverserSuite extends FunSuite {
     val s2 = "class C(y: Int)"
     assert(s1 == result1.toString)
     assert(s2 == result2.toString) 
-  }  
+  }
+
+  test("dialect test") {
+    import scala.meta.dialects.Scala210
+    val tree0 = "val x = 1".parse[Stat].get
+    import scala.meta.dialects.{ Scala210 => _ }    
+    val result1 = tree0.transform { case q"x" => q"y" }
+    import scala.meta.dialects.Scala211
+    assert(result1.toString == "val y = 1")
+  }
 }
