@@ -71,8 +71,6 @@ trait InternalTree {
         val startToken = tokens(pos.start)
         val endToken = tokens(pos.end - 1)
         Position.Range(input, startToken.start, endToken.end)
-      case Origin.Transformed(tree) =>
-        tree.pos
       case _ =>
         Position.None      
     }
