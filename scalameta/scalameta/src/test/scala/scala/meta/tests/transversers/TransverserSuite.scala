@@ -333,12 +333,316 @@ class TransverserSuite extends FunSuite {
     assert(s2 == result2.toString) 
   }
 
-  test("dialect test") {
-    import scala.meta.dialects.Scala210
-    val tree0 = "val x = 1".parse[Stat].get
-    import scala.meta.dialects.{ Scala210 => _ }    
-    val result1 = tree0.transform { case q"x" => q"y" }
-    import scala.meta.dialects.Scala211
-    assert(result1.toString == "val y = 1")
+  test("function test") {
+    val tree0 = "(x: Int) => x + 1".parse[Term].get
+    val result1 = tree0 transform  { case q"x" => q"y" }
+    val result2 = tree0 transform { case t"Int" => t"String" }
+    val s1 = "(y: Int) => y + 1"
+    val s2 = "(x: String) => x + 1"
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+  }
+
+  test("Literal test") {
+    val tree0 = "1".parse[Term].get
+    val result1 = tree0 transform { case q"1" => q"a" }
+    val result2 = tree0 transform { case q"1" => q"()" }
+    val s1 = "a"
+    val s2 = "()"
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+  }
+
+  test("function application") {
+    val tree0 = "f(x, y, z)".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"a" }
+    val result2 = tree0 transform { case q"f" => q"g" }
+    val s1 = "f(a, y, z)"
+    val s2 = "g(x, y, z)"
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+  }
+
+  test("infix application") {
+    val tree0 = "foo map println".parse[Term].get
+    val result1 = tree0 transform { case q"map" => q"foreach" }
+    val result2 = tree0 transform { case q"foo" => q"bar" }
+    val s1 = "foo foreach println"
+    val s2 = "bar map println"
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+  }
+
+  test("assign test") {
+    val tree0 = "x = y".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"a" }
+    val s1 = "a = y"
+    assert(s1 == result1.toString)
+  }
+
+  test("return test") {
+    val tree0 = "return x".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"a" }
+    val s1 = "return a"
+    assert(s1 == result1.toString)
+  }
+
+  test("throw test") {
+    val tree0 = "throw x".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"a" }
+    val s1 = "throw a"
+    assert(s1 == result1.toString)
+  }
+
+  test("ascription test") {
+    val tree0 = "x: Int".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"y" }
+    val result2 = tree0 transform { case t"Int" => t"String" }
+    val s1 = "y: Int"
+    val s2 = "x: String"
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+  }
+
+  test("tuple test") {
+    val tree0 = "(x, y, z)".parse[Term].get
+    val result1 = tree0 transform { case q"y" => q"b" }
+    val s1 = "(x, b, z)"
+    assert(s1 == result1.toString)
+  }
+
+  test("partial function test") {
+    val tree0 = """
+     | x map {
+     |   case foo => bar
+     |   case bar => baz
+     | }
+     | """.trim.stripMargin.parse[Term].get
+    val result1 = tree0 transform { case q"bar" => q"yes" }
+    val s1 = """
+     | x map {
+     |   case foo => yes
+     |   case yes => baz
+     | }
+     | """.trim.stripMargin
+
+    assert(s1 == result1.toString)
+  }
+
+  test("while test") {
+    val tree0 = "while (x < 10) { println x }".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"a" }
+    val s1 = "while (a < 10) { println a }"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("for yield test") {
+    val tree0 = """
+     | for {
+     |   i <- 1 to x
+     |   j <- i to y
+     | } yield {
+     |   (i, j)
+     | }
+     | """.trim.stripMargin.parse[Term].get
+    val result1 = tree0 transform { case q"i" => q"a" }
+    val result2 = tree0 transform { case q"to" => q"until" }
+    val result3 = tree0 transform { case q"x" => q"bar" }
+    val s1 = """
+     | for {
+     |   a <- 1 to x
+     |   j <- a to y
+     | } yield {
+     |   (a, j)
+     | }
+     | """.trim.stripMargin
+    val s2 = """
+     | for {
+     |   i <- 1 until x
+     |   j <- i until y
+     | } yield {
+     |   (i, j)
+     | }
+     | """.trim.stripMargin
+    val s3 = """
+     | for {
+     |   i <- 1 to bar
+     |   j <- i to y
+     | } yield {
+     |   (i, j)
+     | }
+     | """.trim.stripMargin
+
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+    assert(s3 == result3.toString)
+  }
+
+  test("new test") {
+    val tree0 = "new Foo { val x = 1 }".parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"y" }
+    val result2 = tree0 transform { case q"Foo" => q"Bar" }
+    val s1 = "new Foo { val y = 1 }"
+    val s2 = "new Bar { val x = 1 }"
+
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+  }
+
+  test("placeholder test") {
+    val tree0 = "_".parse[Term].get
+    val result1 = tree0 transform { case q"_" => q"a" }
+    val s1 = "a"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("eta test") {
+    val tree0 = "foo _".parse[Term].get
+    val result1 = tree0 transform { case q"foo _" => q"bar" }
+    val s1 = "bar"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("try catch cases test") {
+    val tree0 =  """
+     | try {
+     |   println(x)
+     | } catch {
+     |   case e: Exception1 => x1
+     |   case e1: Exception2 => x2
+     |   case e2: Exception3 => x3
+     | } finally {
+     |   x + y
+     | }
+     | """.trim.stripMargin.parse[Term].get
+    val result1 = tree0 transform { case q"x" => q"y" }
+    val result2 = tree0 transform { case q"e" => q"e0" }
+    val result3 = tree0 transform { case t"Exception1" => t"Exception4" }
+    val result4 = tree0 transform { case q"x1" => q"x3" }
+
+    val s1 = """
+     | try {
+     |   println(y)
+     | } catch {
+     |   case e: Exception1 => x1
+     |   case e1: Exception2 => x2
+     |   case e2: Exception3 => x3
+     | } finally {
+     |   y + y
+     | }
+     | """.trim.stripMargin
+    val s2 =  """
+     | try {
+     |   println(x)
+     | } catch {
+     |   case e0: Exception1 => x1
+     |   case e1: Exception2 => x2
+     |   case e2: Exception3 => x3
+     | } finally {
+     |   x + y
+     | }
+     | """.trim.stripMargin
+    val s3 =  """
+     | try {
+     |   println(x)
+     | } catch {
+     |   case e: Exception4 => x1
+     |   case e1: Exception2 => x2
+     |   case e2: Exception3 => x3
+     | } finally {
+     |   x + y
+     | }
+     | """.trim.stripMargin
+    val s4 =  """
+     | try {
+     |   println(x)
+     | } catch {
+     |   case e: Exception1 => x3
+     |   case e1: Exception2 => x2
+     |   case e2: Exception3 => x3
+     | } finally {
+     |   x + y
+     | }
+     | """.trim.stripMargin
+
+    assert(s1 == result1.toString)
+    assert(s2 == result2.toString)
+    assert(s3 == result3.toString)
+    assert(s4 == result4.toString)
+  }
+
+  test("arg test") {
+    val tree0 = "def foo(bar: Int) = ???".parse[Stat].get
+    val result1 = tree0 transform { case arg"bar" => arg"baz" }
+    val s1 = "def foo(baz: Int) = ???"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("repeated arg") {
+    val tree0 = "def foo(bar: _*) = ???".parse[Stat].get
+    val result1 = tree0 transform { case arg"bar" => arg"baz" }
+    val s1 = "def foo(baz: _*) = ???"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("type name") {
+    val tree0 = "Int".parse[Type].get
+    val result1 = tree0 transform { case t"Int" => t"String" }
+    val s1 = "String"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("type selection") {
+    val tree0 = "def foo(bar: X.Y) = ???".parse[Stat].get
+    val result1 = tree0 transform { case t"X.Y" => t"Y.Z" }
+    val s1 = "def foo(bar: Y.Z) = ???"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("type projection") {
+    val tree0 = "def foo(bar: X#Y) = ???".parse[Stat].get
+    val result1 = tree0 transform { case t"X#Y" => t"A#B" }
+    val s1 = "def foo(bar: A#B) = ???"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("type function") {
+    val tree0 = "trait Functor[F[_]] { def fmap[A, B](f: A => B)(fa: F[A]): F[B] = ??? }".parse[Stat].get
+    val result1 = tree0 transform { case t"A => B" => t"A1 => B1" }
+    val s1 = "trait Functor[F[_]] { def fmap[A, B](f: A1 => B1)(fa: F[A]): F[B] = ??? }"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("type tuple" ) {
+    val tree0 = "def foo(bar: (A, B)) = ???".parse[Stat].get
+    val result1 = tree0 transform { case t"(A, B)" => t"(B, C)" }
+    val s1 = "def foo(bar: (B, C)) = ???"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("type existential") {
+    val tree0 = "def foo(x: A forSome { type A }) = x".parse[Stat].get
+    val result1 = tree0 transform { case t"A forSome { type A }" => t"B forSome { type B }" }
+    val s1 = "def foo(x: B forSome { type B }) = x"
+
+    assert(s1 == result1.toString)
+  }
+
+  test("import test") {
+    val tree0 = "import Foo.Bar.Baz".parse[Stat].get
+    val result1 = tree0 transform { case q"Foo" => q"Yes" }
+    val s1 = "import Yes.Bar.Baz"
+
+    assert(s1 == result1.toString)
   }
 }
