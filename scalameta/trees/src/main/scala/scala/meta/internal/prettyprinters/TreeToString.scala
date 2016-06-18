@@ -8,8 +8,11 @@ import scala.meta.prettyprinters.Options.Lazy
 
 object TreeToString {
   def apply(tree: Tree) = {
-    val dialect = tree.origin match {
-      case Origin.Transformed(tree) => Scala211
+    val dialect = tree.origin match {     
+      case Origin.Transformed(t) => t.origin match {
+        case Origin.Parsed(_, dialect, _) => dialect
+        case _ => Scala211 
+      }
       case Origin.Parsed(_, dialect, _) => dialect
       case Origin.None if tree.isInstanceOf[Quasi] => QuasiquoteTerm(Scala211, multiline = true)
       case Origin.None => Scala211 // this dialect is as good as any as a default
