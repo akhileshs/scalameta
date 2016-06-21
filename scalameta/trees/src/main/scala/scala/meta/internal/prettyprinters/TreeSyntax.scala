@@ -580,7 +580,7 @@ object TreeSyntax {
           case (Term.Name(a0), Lit(a1)) =>
             sb.append(a1)
           case _ =>
-            sb.append("$HOLE")          
+            sb.append(syntaxInstances.syntaxTree[Tree].apply(t2))          
         }
         pos = x.pos.end.offset
       }
