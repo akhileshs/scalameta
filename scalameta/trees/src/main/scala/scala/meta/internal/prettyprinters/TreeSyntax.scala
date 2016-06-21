@@ -19,6 +19,7 @@ import org.scalameta.collections._
 import org.scalameta.invariants._
 import org.scalameta.{unreachable, debug}
 import scala.compat.Platform.EOL
+import scala.meta.tokens._
 
 object TreeSyntax {
   def apply[T <: Tree](dialect: Dialect, options: Options): Syntax[T] = {
@@ -540,10 +541,11 @@ object TreeSyntax {
       }
     }
 
-    def printTransformedTree[T <: Tree](orig: T, transformed: T): Show.Result = {
-      val sb = new StringBuilder
-      var pos = 0
+    def printTransformedTree[T <: Tree](sb: StringBuilder, orig: T, transformed: T): Show.Result = {
+      val l1 = orig.productIterator.toList
+      val l2 = transformed.productIterator.toList
 
+      var pos = 0
       def updatePos(t: Tree): Unit = {
         t.origin match {
           case Origin.Transformed(tree) => updatePos(tree)
@@ -559,46 +561,50 @@ object TreeSyntax {
           case _ => t
         }
       }
-
+      
       def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
         val x = updateTree(t1)
+
         sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
-          (t1, t2) match {
-          case (Name.Indeterminate(a0), Name.Indeterminate(a1)) =>
-            sb.append(a1)
+
+        (t1, t2) match {
           case (Term.Name(a0), Term.Name(a1)) =>
             sb.append(a1)
           case (Type.Name(a0), Type.Name(a1)) =>
             sb.append(a1)
           case (Lit(a0), Lit(a1)) =>
             sb.append(a1)
+          case (Lit(a0), Term.Name(a1)) =>
+            sb.append(a1)
+            println("sb is now: " + sb)
+          case (Term.Name(a0), Lit(a1)) =>
+            sb.append(a1)
           case _ =>
-            sb.append(t2)
+            sb.append("$HOLE")          
         }
-        pos = x.pos.end.offset     // pos only gets updated once over here
+        pos = x.pos.end.offset
       }
 
       def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
-        if (t1.isEmpty) {}
+        if (t1.isEmpty) {
+          println("t1 is empty")
+        }
         else {
           for ((x0, x1) <- (t1 zip t2)) {
-            (x0, x1) match {
+              (x0, x1) match {
               case (y0: Tree, y1: Tree) => appendResultTree(sb, y0, y1)
               case (y0: Seq[_], y1: Seq[_]) => appendResultSeqTree(sb, y0, y1)
               case (y0: Option[_], y1: Option[_]) => appendResultSeqTree(sb, y0.toList, y1.toList)
-              case _ => {}
+              case _ => { println("not any of the cases") }
             }
           }
         }
       }
-      
+
       def appendRemainder(sb: StringBuilder): Unit = {
         val x = updateTree(orig)
         sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
       }
-
-      val l1 = orig.productIterator.toList
-      val l2 = transformed.productIterator.toList
 
       (l1 zip l2) foreach {
         /* put weird cases here first */
@@ -612,10 +618,10 @@ object TreeSyntax {
           appendResultSeqTree(sb, x, y)
         case (x: Option[_], y: Option[_]) =>
           appendResultSeqTree(sb, x.toList, y.toList)
-        case _ => {}
+        case _ => {}          
       }
-      
-      appendRemainder(sb)
+
+      appendRemainder(sb)      
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.
@@ -631,7 +637,8 @@ object TreeSyntax {
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Transformed(tree) =>
-          printTransformedTree(tree, x)
+          val sb = new StringBuilder
+          printTransformedTree(sb, tree, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
       }
