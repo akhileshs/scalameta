@@ -542,18 +542,15 @@ object TreeSyntax {
     }
 
     def printTransformedTree[T <: Tree](sb: StringBuilder, orig: T, transformed: T): Show.Result = {
-      val l1 = orig.productIterator.toList
-      val l2 = transformed.productIterator.toList
-
       var pos = 0
+      updatePos(orig)
+
       def updatePos(t: Tree): Unit = {
         t.origin match {
           case Origin.Transformed(tree) => updatePos(tree)
           case _ => pos = t.pos.start.offset
         }
       }
-
-      updatePos(orig)
 
       def updateTree(t: Tree): Tree = {
         t.origin match {
@@ -564,31 +561,24 @@ object TreeSyntax {
       
       def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
         val x = updateTree(t1)
-
+        
         sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
 
         (t1, t2) match {
-          case (Term.Name(a0), Term.Name(a1)) =>
+          case (_, Term.Name(a1)) =>
             sb.append(a1)
-          case (Type.Name(a0), Type.Name(a1)) =>
+          case (_, Type.Name(a1)) =>
             sb.append(a1)
-          case (Lit(a0), Lit(a1)) =>
-            sb.append(a1)
-          case (Lit(a0), Term.Name(a1)) =>
-            sb.append(a1)
-            println("sb is now: " + sb)
-          case (Term.Name(a0), Lit(a1)) =>
-            sb.append(a1)
+          case (_, Lit(a1)) =>
+            sb.append(a1)                    
           case _ =>
-            sb.append(syntaxInstances.syntaxTree[Tree].apply(t2))          
+            sb.append(t2)
         }
         pos = x.pos.end.offset
       }
 
       def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
-        if (t1.isEmpty) {
-          println("t1 is empty")
-        }
+        if (t1.isEmpty) {}
         else {
           for ((x0, x1) <- (t1 zip t2)) {
               (x0, x1) match {
@@ -606,6 +596,9 @@ object TreeSyntax {
         sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
       }
 
+      val l1 = orig.productIterator.toList
+      val l2 = transformed.productIterator.toList
+
       (l1 zip l2) foreach {
         /* put weird cases here first */
         case (Lit(()), Lit(())) => {}
@@ -614,11 +607,13 @@ object TreeSyntax {
           appendResultSeqTree(sb, paramss0, paramss1)
         case (x: Tree, y: Tree) =>
           appendResultTree(sb, x, y)
-        case (x: Seq[_], y: Seq[_])  =>
+        case (x: Seq[_], y: Seq[_]) =>
           appendResultSeqTree(sb, x, y)
         case (x: Option[_], y: Option[_]) =>
           appendResultSeqTree(sb, x.toList, y.toList)
-        case _ => {}          
+        case _ =>
+          pos += updateTree(orig).toString.length
+          sb.append(syntaxInstances.syntaxTree[Tree].apply(transformed))
       }
 
       appendRemainder(sb)      
