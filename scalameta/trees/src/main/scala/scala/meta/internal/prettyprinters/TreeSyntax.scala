@@ -21,6 +21,10 @@ import org.scalameta.{unreachable, debug}
 import scala.compat.Platform.EOL
 import scala.meta.tokens._
 
+import scala.meta.inputs._
+import scala.meta.internal.tokens.TokenStreamPosition
+import scala.meta.common._
+
 object TreeSyntax {
   def apply[T <: Tree](dialect: Dialect, options: Options): Syntax[T] = {
     object syntaxInstances {
@@ -541,40 +545,31 @@ object TreeSyntax {
       }
     }
 
-    def printTransformedTree[T <: Tree](sb: StringBuilder, orig: T, transformed: T): Show.Result = {
+    def printTransformedTree(sb: StringBuilder, orig: Tree, transformed: Tree): Show.Result = {
       var pos = 0
-      updatePos(orig)
 
-      def updatePos(t: Tree): Unit = {
-        t.origin match {
-          case Origin.Transformed(tree) => updatePos(tree)
-          case _ => pos = t.pos.start.offset
-        }
-      }
-
-      def updateTree(t: Tree): Tree = {
-        t.origin match {
-          case Origin.Transformed(tree) => updateTree(tree)
-          case _ => t
-        }
-      }
-      
       def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
-        val x = updateTree(t1)
-        
-        sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
+        val arr = t1.toString.toArray
+        if (t1.pos.start.offset == 0) {
+          while (orig.pos.input.chars(pos) != arr(0)) {
+            sb.append(orig.pos.input.chars(pos))
+            pos = pos + 1
+          }
+          sb.append(t2)
+          pos = pos + t2.toString.length
+        }        
+        else {
+          if (pos == -1) pos = sb.length         
 
-        (t1, t2) match {
-          case (_, Term.Name(a1)) =>
-            sb.append(a1)
-          case (_, Type.Name(a1)) =>
-            sb.append(a1)
-          case (_, Lit(a1)) =>
-            sb.append(a1)                    
-          case _ =>
-            sb.append(t2)
+          while (orig.pos.input.chars(pos) != arr(0)) {
+            sb.append(orig.pos.input.chars(pos))
+            pos = pos + 1
+          }
+          
+
+          sb.append(t2)
+          pos = t1.pos.end.offset
         }
-        pos = x.pos.end.offset
       }
 
       def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
@@ -585,15 +580,15 @@ object TreeSyntax {
               case (y0: Tree, y1: Tree) => appendResultTree(sb, y0, y1)
               case (y0: Seq[_], y1: Seq[_]) => appendResultSeqTree(sb, y0, y1)
               case (y0: Option[_], y1: Option[_]) => appendResultSeqTree(sb, y0.toList, y1.toList)
-              case _ => { println("not any of the cases") }
+              case _ => {}
             }
           }
         }
+        appendRemainder(sb)
       }
 
       def appendRemainder(sb: StringBuilder): Unit = {
-        val x = updateTree(orig)
-        sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+        sb.appendAll(orig.pos.input.chars, pos, orig.pos.end.offset - pos)
       }
 
       val l1 = orig.productIterator.toList
@@ -607,16 +602,14 @@ object TreeSyntax {
           appendResultSeqTree(sb, paramss0, paramss1)
         case (x: Tree, y: Tree) =>
           appendResultTree(sb, x, y)
+          // appendRemainder(sb)
         case (x: Seq[_], y: Seq[_]) =>
-          appendResultSeqTree(sb, x, y)
+          appendResultSeqTree(sb, x, y)         
         case (x: Option[_], y: Option[_]) =>
           appendResultSeqTree(sb, x.toList, y.toList)
-        case _ =>
-          pos += updateTree(orig).toString.length
-          sb.append(syntaxInstances.syntaxTree[Tree].apply(transformed))
+        case _ => {}  
       }
 
-      appendRemainder(sb)      
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.
@@ -631,11 +624,12 @@ object TreeSyntax {
         case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect =>
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
-        case Origin.Transformed(tree) =>
+        case Origin.Transformed(tree) =>          
           val sb = new StringBuilder
-          printTransformedTree(sb, tree, x)
+          val tempTree = tree.withOrigin(Origin.Parsed(Input.String(tree.toString), dialect, TokenStreamPosition(0, tree.tokens.toList.length)))        
+          printTransformedTree(sb, tempTree, x)
         case _ =>
-          syntaxInstances.syntaxTree[T].apply(x)
+          syntaxInstances.syntaxTree[T].apply(x)        
       }
     }
   }

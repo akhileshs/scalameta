@@ -25,11 +25,12 @@ class TransformerMacros(val c: Context) extends TransverserMacros {
         q"""
           val $from = $input
           val $to = apply($from)
+
           $to match {
            case $to: ${hygienicRef(tpe.typeSymbol)} =>
-             if (($from ne $to) && ($to ne tree)) {
+             if ($from ne $to) {
                same = false
-               $to.withOrigin(_root_.scala.meta.internal.ast.Origin.Transformed($from))
+               $to
              } else {
                $to
              }
@@ -91,7 +92,7 @@ class TransformerMacros(val c: Context) extends TransverserMacros {
 
     q"""
       var same = true
-      ..$transformedFields
+      ..$transformedFields      
       if (same) tree
       else $constructor(..${transformedFields.map(_.name)}).withOrigin(_root_.scala.meta.internal.ast.Origin.Transformed(tree))
     """
