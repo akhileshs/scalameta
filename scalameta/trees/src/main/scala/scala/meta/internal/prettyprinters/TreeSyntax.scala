@@ -546,30 +546,20 @@ object TreeSyntax {
     }
 
     def printTransformedTree(sb: StringBuilder, orig: Tree, transformed: Tree): Show.Result = {
-      var pos = 0
+      var pos = orig.pos.start.offset
 
       def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
         val arr = t1.toString.toArray
-        if (t1.pos.start.offset == 0) {
-          while (orig.pos.input.chars(pos) != arr(0)) {
-            sb.append(orig.pos.input.chars(pos))
-            pos = pos + 1
-          }
-          sb.append(t2)
-          pos = pos + t2.toString.length
-        }        
-        else {
-          if (pos == -1) pos = sb.length         
+        
+        while (orig.pos.input.chars(pos) != arr(0)) {
+          sb.append(orig.pos.input.chars(pos))          
+          pos = pos + 1
+        }               
 
-          while (orig.pos.input.chars(pos) != arr(0)) {
-            sb.append(orig.pos.input.chars(pos))
-            pos = pos + 1
-          }
-          
+        sb.append(t2)
+        
+        pos = pos + t1.toString.length
 
-          sb.append(t2)
-          pos = t1.pos.end.offset
-        }
       }
 
       def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
@@ -583,12 +573,14 @@ object TreeSyntax {
               case _ => {}
             }
           }
-        }
-        appendRemainder(sb)
+        }        
       }
 
-      def appendRemainder(sb: StringBuilder): Unit = {
-        sb.appendAll(orig.pos.input.chars, pos, orig.pos.end.offset - pos)
+      def appendRemainder(sb: StringBuilder): Unit = {        
+        while (pos < orig.toString.length) {
+          sb.append(orig.pos.input.chars(pos))
+          pos = pos + 1
+        }         
       }
 
       val l1 = orig.productIterator.toList
@@ -602,14 +594,14 @@ object TreeSyntax {
           appendResultSeqTree(sb, paramss0, paramss1)
         case (x: Tree, y: Tree) =>
           appendResultTree(sb, x, y)
-          // appendRemainder(sb)
         case (x: Seq[_], y: Seq[_]) =>
-          appendResultSeqTree(sb, x, y)         
+          appendResultSeqTree(sb, x, y)
         case (x: Option[_], y: Option[_]) =>
           appendResultSeqTree(sb, x.toList, y.toList)
         case _ => {}  
       }
 
+      appendRemainder(sb)
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.
