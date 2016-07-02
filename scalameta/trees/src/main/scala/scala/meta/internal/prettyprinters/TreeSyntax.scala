@@ -546,62 +546,20 @@ object TreeSyntax {
     }
 
     def printTransformedTree(sb: StringBuilder, orig: Tree, transformed: Tree): Show.Result = {
-      var pos = orig.pos.start.offset
+      def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree, prevPos: Int, startPos: Int): Unit = {       
+        sb.appendAll(orig.pos.input.chars, prevPos, startPos - prevPos) // print the upto the child.
+        sb.append(t2) // print the child.
+      }          
 
-      def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
-        val arr = t1.toString.toArray
-        
-        while (orig.pos.input.chars(pos) != arr(0)) {
-          sb.append(orig.pos.input.chars(pos))          
-          pos = pos + 1
-        }               
-
-        sb.append(t2)
-        
-        pos = pos + t1.toString.length
-
+      val prevPosList = orig.children.scanLeft(orig.pos.start.offset) { case (acc: Int, x: Tree) => x.pos.end.offset }
+      val scrut = (orig.children, transformed.children, prevPosList).zipped.toList
+      
+      scrut foreach {      
+        case (x: Tree, y: Tree, prevPos: Int) =>
+          appendResultTree(sb, x, y, prevPos, x.pos.start.offset)
+        case _ => {}
       }
 
-      def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
-        if (t1.isEmpty) {}
-        else {
-          for ((x0, x1) <- (t1 zip t2)) {
-              (x0, x1) match {
-              case (y0: Tree, y1: Tree) => appendResultTree(sb, y0, y1)
-              case (y0: Seq[_], y1: Seq[_]) => appendResultSeqTree(sb, y0, y1)
-              case (y0: Option[_], y1: Option[_]) => appendResultSeqTree(sb, y0.toList, y1.toList)
-              case _ => {}
-            }
-          }
-        }        
-      }
-
-      def appendRemainder(sb: StringBuilder): Unit = {        
-        while (pos < orig.toString.length) {
-          sb.append(orig.pos.input.chars(pos))
-          pos = pos + 1
-        }         
-      }
-
-      val l1 = orig.productIterator.toList
-      val l2 = transformed.productIterator.toList
-
-      (l1 zip l2) foreach {
-        /* put weird cases here first */
-        case (Lit(()), Lit(())) => {}
-        case (Ctor.Primary(mods0, _, paramss0), Ctor.Primary(mods1, _, paramss1)) =>
-          appendResultSeqTree(sb, mods0, mods1)
-          appendResultSeqTree(sb, paramss0, paramss1)
-        case (x: Tree, y: Tree) =>
-          appendResultTree(sb, x, y)
-        case (x: Seq[_], y: Seq[_]) =>
-          appendResultSeqTree(sb, x, y)
-        case (x: Option[_], y: Option[_]) =>
-          appendResultSeqTree(sb, x.toList, y.toList)
-        case _ => {}  
-      }
-
-      appendRemainder(sb)
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.
@@ -618,7 +576,8 @@ object TreeSyntax {
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Transformed(tree) =>          
           val sb = new StringBuilder
-          val tempTree = tree.withOrigin(Origin.Parsed(Input.String(tree.toString), dialect, TokenStreamPosition(0, tree.tokens.toList.length)))        
+          val tempTree = tree.withOrigin(Origin.Parsed(Input.String(tree.toString), dialect, TokenStreamPosition(0, tree.tokens.toList.length)))
+
           printTransformedTree(sb, tempTree, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)        
