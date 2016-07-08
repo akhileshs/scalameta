@@ -9,7 +9,7 @@ import scala.meta.prettyprinters.Options.Lazy
 object TreeToString {
   def apply(tree: Tree) = {
     val dialect = tree.origin match {     
-      case Origin.Transformed(t) => t.origin match {
+      case Origin.Transformed(from, to) => from.origin match {
         case Origin.Parsed(_, dialect, _) => dialect
         case _ => Scala211 
       }

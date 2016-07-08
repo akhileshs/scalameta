@@ -28,7 +28,7 @@ package object meta extends classifiers.Api with classifiers.Aliases
       (dialect, tokens)
     }
     def apply(tree: scala.meta.Tree): (scala.meta.Dialect, scala.meta.Tree) = {
-      (dialect, tree.withOrigin(Origin.Transformed(tree)))
+      (dialect, tree)
     }
   }
   implicit class XtensionDialectTokenSyntax(dialectToken: (scala.meta.Dialect, scala.meta.tokens.Token)) {

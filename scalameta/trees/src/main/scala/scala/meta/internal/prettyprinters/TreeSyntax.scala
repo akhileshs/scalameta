@@ -546,7 +546,7 @@ object TreeSyntax {
 
       def updatePos(t: Tree): Unit = {
         t.origin match {
-          case Origin.Transformed(tree) => updatePos(tree)
+          case Origin.Transformed(from, to) => updatePos(from)
           case _ => pos = t.pos.start.offset
         }
       }
@@ -555,7 +555,7 @@ object TreeSyntax {
 
       def updateTree(t: Tree): Tree = {
         t.origin match {
-          case Origin.Transformed(tree) => updateTree(tree)
+          case Origin.Transformed(from, to) => updateTree(from)
           case _ => t
         }
       }
@@ -573,7 +573,10 @@ object TreeSyntax {
           case (Lit(a0), Lit(a1)) =>
             sb.append(a1)
           case _ =>
-            sb.append(t2)
+            t2.origin match {
+              case Origin.Transformed(from, to) => sb.append(to)
+              case _ => sb.append(t2)
+            }
         }
         pos = x.pos.end.offset     // pos only gets updated once over here
       }
@@ -630,8 +633,8 @@ object TreeSyntax {
         case Origin.Parsed(_, originalDialect, _) if dialect == originalDialect =>
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
-        case Origin.Transformed(tree) =>
-          printTransformedTree(tree, x)
+        case Origin.Transformed(from, to) =>
+          printTransformedTree(from, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
       }
