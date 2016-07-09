@@ -20,6 +20,9 @@ import org.scalameta.invariants._
 import org.scalameta.{unreachable, debug}
 import scala.compat.Platform.EOL
 
+import scala.meta.inputs._
+import scala.meta.internal.tokens.TokenStreamPosition
+
 object TreeSyntax {
   def apply[T <: Tree](dialect: Dialect, options: Options): Syntax[T] = {
     object syntaxInstances {
@@ -561,9 +564,12 @@ object TreeSyntax {
       }
 
       def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
-        val x = updateTree(t1)
-        sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
-          (t1, t2) match {
+        val x = updateTree(t1)       
+        
+        if (x.pos.start.offset - pos >= 0) sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
+        else sb.appendAll(x.pos.input.chars, 0, x.pos.start.offset)
+
+        (t1, t2) match {
           case (Name.Indeterminate(a0), Name.Indeterminate(a1)) =>
             sb.append(a1)
           case (Term.Name(a0), Term.Name(a1)) =>
@@ -578,7 +584,28 @@ object TreeSyntax {
               case _ => sb.append(t2)
             }
         }
-        pos = x.pos.end.offset     // pos only gets updated once over here
+
+        if (x.pos.start.offset - pos < 0) {       
+          var tmpPos = x.pos.end.offset
+
+          x.parent.get match {
+            case Term.Block(_) =>
+              while (tmpPos < x.pos.input.chars.length) {
+                sb.append(x.pos.input.chars(tmpPos))
+                tmpPos += 1
+              }
+            case _ =>
+              while (tmpPos < x.tokens.length) {
+                sb.append(x.pos.input.chars(tmpPos))
+                tmpPos += 1
+              }
+          }
+
+          pos = tmpPos
+        }
+        else {
+          pos = x.pos.end.offset     // pos only gets updated once over here
+        }
       }
 
       def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
@@ -592,12 +619,17 @@ object TreeSyntax {
               case _ => {}
             }
           }
-        }
+        }       
       }
       
-      def appendRemainder(sb: StringBuilder): Unit = {
-        val x = updateTree(orig)
-        sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+      def appendRemainder(sb: StringBuilder, t: Tree): Unit = {
+        val x = updateTree(t)   
+
+        x match {
+          case Term.Name(_) => {}
+          case _ =>
+            sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+        }
       }
 
       val l1 = orig.productIterator.toList
@@ -617,8 +649,8 @@ object TreeSyntax {
           appendResultSeqTree(sb, x.toList, y.toList)
         case _ => {}
       }
-      
-      appendRemainder(sb)
+
+      appendRemainder(sb, orig)
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.
@@ -634,6 +666,9 @@ object TreeSyntax {
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Transformed(from, to) =>
+
+
+          //val tmpTree = from.withOrigin(Origin.Parsed(input, dialect, TokenStreamPosition(from.tokens.toList(0).pos.start.offset, from.tokens.toList.length)))
           printTransformedTree(from, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
