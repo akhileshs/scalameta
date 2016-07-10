@@ -570,13 +570,13 @@ object TreeSyntax {
         else sb.appendAll(x.pos.input.chars, 0, x.pos.start.offset)
 
         (t1, t2) match {
-          case (Name.Indeterminate(a0), Name.Indeterminate(a1)) =>
+          case (_, Name.Indeterminate(a1)) =>
             sb.append(a1)
-          case (Term.Name(a0), Term.Name(a1)) =>
+          case (_, Term.Name(a1)) =>
             sb.append(a1)
-          case (Type.Name(a0), Type.Name(a1)) =>
+          case (_, Type.Name(a1)) =>
             sb.append(a1)
-          case (Lit(a0), Lit(a1)) =>
+          case (_, Lit(a1)) =>
             sb.append(a1)
           case _ =>
             t2.origin match {
@@ -600,25 +600,21 @@ object TreeSyntax {
                     t1.last match {
                       case (x: Tree) =>
                         if (x eq y0) {                          
-                          var tmpPos = updateTree(y0).pos.end.offset
+                          pos = updateTree(y0).pos.end.offset
 
-                          if (updateTree(x).parent.get.pos.start.offset == -1) {
-                            println("Entering the -1 branch")
-                            while (tmpPos < updateTree(x).pos.input.chars.length) {
-                              sb.append(updateTree(x).pos.input.chars(tmpPos))                              
-                              tmpPos += 1
+                          if (updateTree(x).parent.get.pos.start.offset == -1) {                            
+                            while (pos < updateTree(x).pos.input.chars.length) {
+                              sb.append(updateTree(x).pos.input.chars(pos))                              
+                              pos += 1
                             }
                           }
                           else {
-                            println("Entering this branch")
-                            while (tmpPos < updateTree(y0.parent.get).pos.end.offset) {
-                              sb.append(updateTree(y0).pos.input.chars(tmpPos))                              
-                              tmpPos += 1
+                            while (pos < updateTree(y0.parent.get).pos.end.offset) {
+                              sb.append(updateTree(y0).pos.input.chars(pos))                              
+                              pos += 1
                             }
                           }
-                          
-                          pos = tmpPos
-                        }                        
+                        }
                       case _ => {}
                     }
                   case _ => {}
@@ -633,16 +629,13 @@ object TreeSyntax {
       
       def appendRemainder(sb: StringBuilder, t: Tree): Unit = {
         val x = updateTree(t)   
-
-        //sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
         x match {
-          case Term.Name(_) =>
-            // sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
-          case Term.Block(_) =>
-            // sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+          case Term.Name(_) => {}
+          case Type.Name(_) => {}
+          case Lit(_) => {}
+          case Term.Block(_) => {}
           case _ =>
             sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
-
         }
       }
 
@@ -665,7 +658,6 @@ object TreeSyntax {
       }
 
       appendRemainder(sb, orig)
-      //println("sb: " + sb)
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.
