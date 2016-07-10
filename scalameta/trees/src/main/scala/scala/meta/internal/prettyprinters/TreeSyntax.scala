@@ -585,27 +585,7 @@ object TreeSyntax {
             }
         }
 
-        if (x.pos.start.offset - pos < 0) {       
-          var tmpPos = x.pos.end.offset
-
-          x.parent.get match {
-            case Term.Block(_) =>
-              while (tmpPos < x.pos.input.chars.length) {
-                sb.append(x.pos.input.chars(tmpPos))
-                tmpPos += 1
-              }
-            case _ =>
-              while (tmpPos < x.tokens.length) {
-                sb.append(x.pos.input.chars(tmpPos))
-                tmpPos += 1
-              }
-          }
-
-          pos = tmpPos
-        }
-        else {
-          pos = x.pos.end.offset     // pos only gets updated once over here
-        }
+        pos = x.pos.end.offset     
       }
 
       def appendResultSeqTree(sb: StringBuilder, t1: Seq[Any], t2: Seq[Any]): Unit = {
@@ -613,7 +593,36 @@ object TreeSyntax {
         else {
           for ((x0, x1) <- (t1 zip t2)) {
             (x0, x1) match {
-              case (y0: Tree, y1: Tree) => appendResultTree(sb, y0, y1)
+              case (y0: Tree, y1: Tree) =>
+                appendResultTree(sb, y0, y1)
+                y0.parent.get match {
+                  case Term.Block(_) =>
+                    t1.last match {
+                      case (x: Tree) =>
+                        if (x eq y0) {                          
+                          var tmpPos = updateTree(y0).pos.end.offset
+
+                          if (updateTree(x).parent.get.pos.start.offset == -1) {
+                            println("Entering the -1 branch")
+                            while (tmpPos < updateTree(x).pos.input.chars.length) {
+                              sb.append(updateTree(x).pos.input.chars(tmpPos))                              
+                              tmpPos += 1
+                            }
+                          }
+                          else {
+                            println("Entering this branch")
+                            while (tmpPos < updateTree(y0.parent.get).pos.end.offset) {
+                              sb.append(updateTree(y0).pos.input.chars(tmpPos))                              
+                              tmpPos += 1
+                            }
+                          }
+                          
+                          pos = tmpPos
+                        }                        
+                      case _ => {}
+                    }
+                  case _ => {}
+                }
               case (y0: Seq[_], y1: Seq[_]) => appendResultSeqTree(sb, y0, y1)
               case (y0: Option[_], y1: Option[_]) => appendResultSeqTree(sb, y0.toList, y1.toList)
               case _ => {}
@@ -625,10 +634,15 @@ object TreeSyntax {
       def appendRemainder(sb: StringBuilder, t: Tree): Unit = {
         val x = updateTree(t)   
 
+        //sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
         x match {
-          case Term.Name(_) => {}
+          case Term.Name(_) =>
+            // sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+          case Term.Block(_) =>
+            // sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
           case _ =>
             sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+
         }
       }
 
@@ -651,6 +665,7 @@ object TreeSyntax {
       }
 
       appendRemainder(sb, orig)
+      //println("sb: " + sb)
       s(sb.toString)
     }
     // NOTE: This is the current state of the art of smart prettyprinting.

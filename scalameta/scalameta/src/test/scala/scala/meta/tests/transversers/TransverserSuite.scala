@@ -9,7 +9,7 @@ import scala.meta.internal.prettyprinters._
 import scala.meta.internal.ast.Origin
 
 class TransverserSuite extends FunSuite {
-  
+
   test("Traverser Ok") {
     val tree0 = q"""
       def foo(x: x)(x: Int) = x + x
@@ -305,25 +305,15 @@ class TransverserSuite extends FunSuite {
     assert(result1.toString == s)
    }   
 
+
   test("nested block test") {
-    val tree0 = """
-    if (x > 10) {
-      if (y > 10) {
-        x
-      }
-    }
-    """.parse[Term].get
+    val tree0 = "if (a > 10) { if (y > 10) { x } }".parse[Term].get
     val result1 = tree0 transform { case q"x" => q"a" }
-    val s = """
-    if (a > 10) {
-      if (y > 10) {
-        a
-      }
-    }
-    """
+    val s = "if (a > 10) { if (y > 10) { a } }"
     assert(result1.toString == s)
   }
 
+   
   test("class test") {
     val tree0 = "class C(x: Int)".parse[Stat].get
     val result1 = tree0 transform { case t"C" => t"D" }
@@ -646,16 +636,15 @@ class TransverserSuite extends FunSuite {
 
     assert(s1 == result1.toString)
   }
-   
+  
   test("test1") {
     val tree0 = "def foo(bar: Int) = baz".parse[Stat].get
     val result1 = tree0 transform { case q"baz" => "baz + baz".parse[Term].get }
     val result2 = result1 transform { case q"baz" => "bar".parse[Term].get }
     val s1 = "def foo(bar: Int) = bar + bar"
     assert(s1 == result2.toString)
-  }
-   
-
+  }     
+  
   test("test2") {
     val tree0 = "if (x) y else z".parse[Term].get
     val result1 = tree0 transform { case q"x" => "{ a }".parse[Term].get }
@@ -666,15 +655,32 @@ class TransverserSuite extends FunSuite {
 
   }
    
-
   test("test3") {
     val tree0 = "{ def foo(bar: Int) = baz }".parse[Term].get
     val result1 = tree0 transform { case q"baz" => "works".parse[Term].get }
     val s1 = "{ def foo(bar: Int) = works }"
 
     assert(s1 == result1.toString)
-
-
   }
    
+  test("test4") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val result1 = tree0 transform { case q"y" => "{ a }".parse[Term].get }
+    val result2 = result1 transform { case q"a" => "a + a".parse[Term].get }
+    val result3 = result2 transform { case q"a" => "{ a }".parse[Term].get }
+    val result4 = result3 transform { case q"a" => "yes".parse[Term].get }
+    val s1 = "if (x) { { yes } + { yes } } else z"
+
+    assert(s1 == result4.toString)
+  }
+  
+  test("test5") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val result1 = tree0 transform { case q"y" => "{ foo1; foo2; foo3 }".parse[Term].get }
+    val result2 = result1 transform { case q"foo1" => "works".parse[Term].get }
+    val s1 = "if (x) { works; foo2; foo3 } else z"
+
+    assert(s1 == result2.toString)
+  }
+  
 }
