@@ -543,10 +543,11 @@ object TreeSyntax {
       }
     }
 
-    def printTransformedTree[T <: Tree](orig: T, transformed: T, origString: String): Show.Result = {
+    def printTransformedTree[T <: Tree](orig: T, transformed: T): Show.Result = {
       val sb = new StringBuilder
       var pos = 0
       var flag = -1
+      var flag1 = -1
 
       def updatePos(t: Tree): Unit = {
         t.origin match {
@@ -567,8 +568,8 @@ object TreeSyntax {
       def appendResultTree(sb: StringBuilder, t1: Tree, t2: Tree): Unit = {
         val x = updateTree(t1)
 
-        if (x.pos.start.offset - pos >= 0) sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)                 
-        else sb.appendAll(x.pos.input.chars, 0, x.pos.start.offset)       
+        if (x.pos.start.offset - pos >= 0) sb.appendAll(x.pos.input.chars, pos, x.pos.start.offset - pos)
+        else sb.appendAll(x.pos.input.chars, 0, x.pos.start.offset)
 
         (t1, t2) match {
           case (_, Name.Indeterminate(a1)) => sb.append(a1)
@@ -595,22 +596,23 @@ object TreeSyntax {
                     updateTree(y0).pos.nonEmpty &&
                     (updateTree(y0).pos.input.chars != updateTree(orig).pos.input.chars)) {
                   (y0, y0.parent) match {
-                    case (_, Some(Term.Block(stats))) =>                      
-                      sb.appendAll(updateTree(y0).pos.input.chars, 0, updateTree(y0).pos.start.offset)
-                      flag = 0
+                    case (_, Some(Term.Block(stats))) =>
+                      sb.appendAll(updateTree(y0).pos.input.chars, 0, updateTree(y0).pos.start.offset)                      
                       pos += (updateTree(y0).pos.start.offset - pos)
                     case (_, Some(Defn.Val(_, _, _, _))) => pos += (updateTree(y0).pos.start.offset)
+                    case (_, Some(Defn.Var(_, _, _, _))) => pos += (updateTree(y0).pos.start.offset)                    
                     case _ =>
                   }
-                }
+                  flag = 0
+                }                
+                appendResultTree(sb, y0, y1)              
 
-                appendResultTree(sb, y0, y1)               
 
                 (y0.parent, t1.last) match {
                   case (Some(Term.Block(stats)), (x: Tree)) =>                                   
                     if (x eq y0) {
                       pos = updateTree(x).pos.end.offset
-                      if (updateTree(x).parent.get.pos.start.offset == -1) {
+                      if (updateTree(x).parent.get.pos.isEmpty) {
                         sb.appendAll(updateTree(x).pos.input.chars, pos, updateTree(x).pos.input.chars.length - pos)
                         pos = updateTree(x).pos.input.chars.length
                       }
@@ -619,7 +621,17 @@ object TreeSyntax {
                         pos = updateTree(x.parent.get).pos.end.offset
                       }
                     }             
-                  case _ => 
+                  case (_, (x: Tree)) =>
+                    if ((x eq y0) && orig.pos.isEmpty) {
+                      pos = updateTree(x).pos.end.offset
+                      x match {
+                        case Term.Param(_, _, _, _) =>
+                        case Defn.Def(_, _, _, _, _, _) => sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                        case Defn.Val(_, _, _, _) => sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                        case Defn.Var(_, _, _, _) => sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                        case _ =>
+                      }
+                    }
                 }
               case (y0: Seq[_], y1: Seq[_]) => appendResultSeqTree(sb, y0, y1)
               case (y0: Option[_], y1: Option[_]) => appendResultSeqTree(sb, y0.toList, y1.toList)
@@ -631,16 +643,11 @@ object TreeSyntax {
       
       def appendRemainder(sb: StringBuilder, t: Tree): Unit = {
         val x = updateTree(t)
+        if (t.pos.nonEmpty) sb.appendAll(t.pos.input.chars, pos, t.pos.end.offset - pos)
         x match {
-          case Term.Name(_) => 
-          case Type.Name(_) =>
-          case Lit(_) =>           
+          case Term.Tuple(_) => sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
+          case Term.Match(_, _) => sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
           case _ =>
-            (x, x.parent) match {
-              case (Defn.Val(_, _, _, _), Some(Term.Block(_))) =>
-              case _ => 
-                sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
-            }
         }
       }
 
@@ -654,6 +661,15 @@ object TreeSyntax {
           appendResultSeqTree(sb, mods0, mods1)
           appendResultSeqTree(sb, paramss0, paramss1)
         case (x: Tree, y: Tree) =>
+          (orig, orig.parent) match {
+            case (Defn.Def(_, _, _, _, _, _), Some(Term.Block(stats))) => 
+              if (orig.pos.isEmpty && (flag1 == -1) && (stats.length == 1)) {
+                sb.appendAll(updateTree(x).pos.input.chars, 0, updateTree(x).pos.start.offset)
+                pos += (updateTree(x).pos.start.offset - pos)
+                flag1 = 0
+              }
+            case _ =>
+          }
           appendResultTree(sb, x, y)
         case (x: Seq[_], y: Seq[_])  =>
           appendResultSeqTree(sb, x, y)
@@ -679,7 +695,7 @@ object TreeSyntax {
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Transformed(from, to) =>
-          printTransformedTree(from, x, from.toString)
+          printTransformedTree(from, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
       }
