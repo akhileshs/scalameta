@@ -626,6 +626,9 @@ object TreeSyntax {
           s(new String(x.pos.input.chars, x.pos.start.offset, x.pos.end.offset - x.pos.start.offset))
         // case Origin.Parsed(originalInput, originalDialect, pos) if dialect == originalDialect && options == Options.Eager =>
         case Origin.Transformed(from, to) =>
+          // create a temporary parsed copy of my tree. *only* for pretty printing. no semantic properties get altered.
+          // val tempTree = parse(from.toString) 
+          // printTransformedtree(tempTree, x)
           printTransformedTree(from, x)
         case _ =>
           syntaxInstances.syntaxTree[T].apply(x)
