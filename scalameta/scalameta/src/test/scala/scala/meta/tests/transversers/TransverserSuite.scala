@@ -633,218 +633,235 @@ class TransverserSuite extends FunSuite {
   //   assert(s1 == result1.toString)
   // }
   
-  test("test1") {
-    val tree0 = "def foo(bar: Int) = baz".parse[Stat].get
-    val result1 = tree0 transform { case q"baz" => "baz + baz".parse[Term].get }
-    val result2 = result1 transform { case q"baz" => "bar".parse[Term].get }
-    val s1 = "def foo(bar: Int) = bar + bar"
-    assert(s1 == result2.toString)
-  }
+  // test("test1") {
+  //   val tree0 = "def foo(bar: Int) = baz".parse[Stat].get
+  //   val result1 = tree0 transform { case q"baz" => "baz + baz".parse[Term].get }
+  //   val result2 = result1 transform { case q"baz" => "bar".parse[Term].get }
+  //   val s1 = "def foo(bar: Int) = bar + bar"
+  //   assert(s1 == result2.toString)
+  // }
   
   
-  test("test2") {
-    val tree0 = "if (x) y else z".parse[Term].get
-    val result1 = tree0 transform { case q"x" => "{ a }".parse[Term].get }
-    val result2 = result1 transform { case q"a" => "b".parse[Term].get }
-    val s1 = "if ({ b }) y else z"
+  // test("test2") {
+  //   val tree0 = "if (x) y else z".parse[Term].get
+  //   val result1 = tree0 transform { case q"x" => "{ a }".parse[Term].get }
+  //   val result2 = result1 transform { case q"a" => "b".parse[Term].get }
+  //   val s1 = "if ({ b }) y else z"
 
-    assert(s1 == result2.toString)
+  //   assert(s1 == result2.toString)
 
-  }
+  // }
    
-  test("test3") {
-    val tree0 = "{ def foo(bar: Int) = baz }".parse[Term].get
-    val result1 = tree0 transform { case q"baz" => "works".parse[Term].get }
-    val s1 = "{ def foo(bar: Int) = works }"
+  // test("test3") {
+  //   val tree0 = "{ def foo(bar: Int) = baz }".parse[Term].get
+  //   val result1 = tree0 transform { case q"baz" => "works".parse[Term].get }
+  //   val s1 = "{ def foo(bar: Int) = works }"
 
-    assert(s1 == result1.toString)
-  }
+  //   assert(s1 == result1.toString)
+  // }
    
-  test("test4") {
-    val tree0 = "if (x) y else z".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "{ a + a }".parse[Term].get }
-    // val result2 = result1 transform { case q"a" => "a + a".parse[Term].get }
-    val result2 = result1 transform { case q"a" => "{ a }".parse[Term].get }
-    val result3 = result2 transform { case q"a" => "yes".parse[Term].get }
-    val result4 = result3 transform { case q"yes" => "works".parse[Term].get }
-    // val result5 = result4 transform { case q"works" => "asdf".parse[Term].get }
-    val s1 = "if (x) { { works } + { works } } else z"
+  // test("test4") {
+  //   val tree0 = "if (x) y else z".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "{ a + a }".parse[Term].get }
+  //   // val result2 = result1 transform { case q"a" => "a + a".parse[Term].get }
+  //   val result2 = result1 transform { case q"a" => "{ a }".parse[Term].get }
+  //   val result3 = result2 transform { case q"a" => "yes".parse[Term].get }
+  //   val result4 = result3 transform { case q"yes" => "works".parse[Term].get }
+  //   // val result5 = result4 transform { case q"works" => "asdf".parse[Term].get }
+  //   val s1 = "if (x) { { works } + { works } } else z"
 
-    assert(s1 == result4.toString)
-  }
+  //   assert(s1 == result4.toString)
+  // }
   
-  test("test5") {
-    val tree0 = "if (x) y else z".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "{ foo1; foo2; foo3 }".parse[Term].get }
-    val result2 = result1 transform { case q"foo1" => "works".parse[Term].get }
-    val s1 = "if (x) { works; foo2; foo3 } else z"
+  // test("test5") {
+  //   val tree0 = "if (x) y else z".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "{ foo1; foo2; foo3 }".parse[Term].get }
+  //   val result2 = result1 transform { case q"foo1" => "works".parse[Term].get }
+  //   val s1 = "if (x) { works; foo2; foo3 } else z"
 
-    assert(s1 == result2.toString)
-  }
+  //   assert(s1 == result2.toString)
+  // }
   
 
-  test("test6") {
-    val tree0 = "{         abc }".parse[Term].get
-    val result1 = tree0 transform { case q"abc" => "bcdefg".parse[Term].get }
-    val result2 = result1 transform { case q"bcdefg" => "asdf".parse[Term].get }
+  // test("test6") {
+  //   val tree0 = "{         abc }".parse[Term].get
+  //   val result1 = tree0 transform { case q"abc" => "bcdefg".parse[Term].get }
+  //   val result2 = result1 transform { case q"bcdefg" => "asdf".parse[Term].get }
   
-    val result3 = result2 transform { case q"asdf" => "{ /* hello */ def foo(x: Int) = bar }".parse[Stat].get }
-    val result4 = result3 transform { case q"foo" => "newfn".parse[Term].get }
-    val s1 = "{         { /* hello */ def newfn(x: Int) = bar } }"
+  //   val result3 = result2 transform { case q"asdf" => "{ /* hello */ def foo(x: Int) = bar }".parse[Stat].get }
+  //   val result4 = result3 transform { case q"foo" => "newfn".parse[Term].get }
+  //   val s1 = "{         { /* hello */ def newfn(x: Int) = bar } }"
 
-    assert(s1 == result4.toString)
-  }
+  //   assert(s1 == result4.toString)
+  // }
 
-  test("test7") {
-    val tree0 = "if (x) y else z".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "{                    abc }".parse[Term].get }
-    val result2 = result1 transform { case q"abc" => "bcd".parse[Term].get }
-    val result3 = result2 transform { case q"bcd" => "cde".parse[Term].get }
-    val result4 = result3 transform { case q"cde" => "asdfasdf".parse[Term].get }
-    val result5 = result4 transform { case q"asdfasdf" => "def foo(bar: Int) = baz".parse[Stat].get }
-    val result6 = result5 transform { case q"foo" => "works".parse[Term].get }
-    val s1 = "if (x) {                    def works(bar: Int) = baz } else z"
+  // test("test7") {
+  //   val tree0 = "if (x) y else z".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "{                    abc }".parse[Term].get }
+  //   val result2 = result1 transform { case q"abc" => "bcd".parse[Term].get }
+  //   val result3 = result2 transform { case q"bcd" => "cde".parse[Term].get }
+  //   val result4 = result3 transform { case q"cde" => "asdfasdf".parse[Term].get }
+  //   val result5 = result4 transform { case q"asdfasdf" => "def foo(bar: Int) = baz".parse[Stat].get }
+  //   val result6 = result5 transform { case q"foo" => "works".parse[Term].get }
+  //   val s1 = "if (x) {                    def works(bar: Int) = baz } else z"
 
-    assert(s1 == result6.toString)
-  }
+  //   assert(s1 == result6.toString)
+  // }
 
-  test("test8") {
-    val tree0 = "y".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "{ val a = m }".parse[Term].get }
-    val result2 = result1 transform { case q"val a = m" => "val j = a".parse[Stat].get }
-    val result3 = result2 transform { case q"j" => "b".parse[Term].get }
-    val s1 = "{ val b = a }"
+  // test("test8") {
+  //   val tree0 = "y".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "{ val a = m }".parse[Term].get }
+  //   val result2 = result1 transform { case q"val a = m" => "val j = a".parse[Stat].get }
+  //   val result3 = result2 transform { case q"j" => "b".parse[Term].get }
+  //   val s1 = "{ val b = a }"
 
-    assert(s1 == result3.toString)
-  }
+  //   assert(s1 == result3.toString)
+  // }
 
-  test("test9") {
-    val tree0 = "y".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "/* comment out */ class C(x: Int) { def foo = bar }".parse[Stat].get }
-    val result2 = result1 transform { case q"def foo = bar" => "{ /* hello */ def foo = baz }".parse[Stat].get }
-    val result3 = result2 transform { case q"foo" => "baz".parse[Term].get }
-    val result4 = result3 transform { case q"baz" => q"foo" }
-    val result5 = result4 transform { case q"foo" => q"baz" }
+  // test("test9") {
+  //   val tree0 = "y".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "/* comment out */ class C(x: Int) { def foo = bar }".parse[Stat].get }
+  //   val result2 = result1 transform { case q"def foo = bar" => "{ /* hello */ def foo = baz }".parse[Stat].get }
+  //   val result3 = result2 transform { case q"foo" => "baz".parse[Term].get }
+  //   val result4 = result3 transform { case q"baz" => q"foo" }
+  //   val result5 = result4 transform { case q"foo" => q"baz" }
     
-    val s1 = "/* comment out */ class C(x: Int) { { /* hello */ def baz = baz } }"
+  //   val s1 = "/* comment out */ class C(x: Int) { { /* hello */ def baz = baz } }"
 
-    assert(s1 == result5.toString)
-  }
+  //   assert(s1 == result5.toString)
+  // }
 
-  test("test10") {
-    val tree0 = "y".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "/* hello */ class C(x: Int) { def foo = bar; val x = baz }".parse[Stat].get }
-    val result2 = result1 transform { case q"foo" => "baz".parse[Term].get }
-    val result3 = result2 transform { case q"baz" => "foo".parse[Term].get }
-    val result4 = result3 transform { case q"foo" => "baz".parse[Term].get }
-    val result5 = result4 transform { case q"baz" => "foo".parse[Term].get }
-    val s1 = "/* hello */ class C(x: Int) { def foo = bar; val x = foo }"
+  // test("test10") {
+  //   val tree0 = "y".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "/* hello */ class C(x: Int) { def foo = bar; val x = baz }".parse[Stat].get }
+  //   val result2 = result1 transform { case q"foo" => "baz".parse[Term].get }
+  //   val result3 = result2 transform { case q"baz" => "foo".parse[Term].get }
+  //   val result4 = result3 transform { case q"foo" => "baz".parse[Term].get }
+  //   val result5 = result4 transform { case q"baz" => "foo".parse[Term].get }
+  //   val s1 = "/* hello */ class C(x: Int) { def foo = bar; val x = foo }"
 
-    assert(s1 == result5.toString)
-  }
+  //   assert(s1 == result5.toString)
+  // }
 
-  test("test11") {
-    val tree0 = "y".parse[Term].get
-    val result1 = tree0 transform { case q"y" => "def foo = bar".parse[Stat].get }
-    val result2 = result1 transform { case q"def foo = bar" => "def foo = baz".parse[Stat].get }
-    val result3 = result2 transform { case q"baz" => q"foo" }
-    val s1 = "def foo = foo"
+  // test("test11") {
+  //   val tree0 = "y".parse[Term].get
+  //   val result1 = tree0 transform { case q"y" => "def foo = bar".parse[Stat].get }
+  //   val result2 = result1 transform { case q"def foo = bar" => "def foo = baz".parse[Stat].get }
+  //   val result3 = result2 transform { case q"baz" => q"foo" }
+  //   val s1 = "def foo = foo"
 
-    assert(s1 == result3.toString)
-  }
+  //   assert(s1 == result3.toString)
+  // }
 
-  test("test12") {
-    val tree0 = "{ def foo = bar }".parse[Term].get
-    val result1 = tree0 transform { case q"def foo = bar" => "def foo = baz".parse[Stat].get }
-    val result2 = result1 transform { case q"foo" => "bar".parse[Term].get }
-    val result3 = result2 transform { case q"bar" => "foo".parse[Term].get }
-    val s1 = "{ def foo = baz }"
+  // test("test12") {
+  //   val tree0 = "{ def foo = bar }".parse[Term].get
+  //   val result1 = tree0 transform { case q"def foo = bar" => "def foo = baz".parse[Stat].get }
+  //   val result2 = result1 transform { case q"foo" => "bar".parse[Term].get }
+  //   val result3 = result2 transform { case q"bar" => "foo".parse[Term].get }
+  //   val s1 = "{ def foo = baz }"
 
-    assert(s1 == result3.toString)
+  //   assert(s1 == result3.toString)
 
-  }
+  // }
 
   test("test13") {
     val tree0 = """
     x match {
-      case 1 => 2
-      case 2 => 3
-      case _ => 4
+      case a => b
+      case c => d
+      case _ => e
     }
     """.parse[Term].get
-    val result1 = tree0 transform { case q"1" => "a".parse[Term].get }
-    val result2 = result1 transform { case q"a" => "1".parse[Term].get }
+    val result1 = tree0 transform { case q"a" => "m".parse[Term].get }
+    val result2 = result1 transform { case q"m" => "a".parse[Term].get }
     val s1 = """
     x match {
-      case 1 => 2
-      case 2 => 3
-      case _ => 4
+      case a => b
+      case c => d
+      case _ => e
     }
     """
 
     assert(s1 == result2.toString)
   }
 
-  test("test14") {
+  // test("test14") {
+  //   val tree0 = """
+  //   class C(x: Int) {
+  //     def foo = bar
+  //     def foo = baz
+  //     val x = 1
+  //   }
+  //   """.parse[Stat].get
+  //   val result1 = tree0 transform { case q"val x = 1" => """x match { case 1 => 2 }""".parse[Term].get }
+  //   val result2 = result1 transform { case q"x" => "y".parse[Term].get }
+  //   val s1 = """
+  //   class C(y: Int) {
+  //     def foo = bar
+  //     def foo = baz
+  //     y match { case 1 => 2 }
+  //   }
+  //   """
+
+  //   assert(s1 == result2.toString)
+  // }
+
+  // test("test15") {
+  //   val tree0 = "abc".parse[Term].get
+  //   val res1 = tree0 transform { case q"abc" => "(x map y).foo".parse[Term].get }
+  //   val res2 = res1 transform { case q"x" => "z".parse[Term].get }
+  //   val res3 = res2 transform { case q"y" => "(y +  y  )".parse[Term].get }
+  //   val res4 = res3 transform { case q"y" => "a".parse[Term].get }
+  //   val res5 = res4 transform { case q"a" => "b".parse[Term].get }
+  //   val s1 = "(z map (b +  b  )).foo"
+
+  //   assert(s1 == res5.toString)
+  // }
+
+  // test("test16") {
+  //   val tree0 = "if (x) y else z".parse[Term].get
+  //   val res1 = tree0 transform { case q"y" => "{ abc + abc }".parse[Term].get }
+  //   val res2 = res1 transform { case q"abc" => "bcd".parse[Term].get }
+  //   val res3 = res2 transform { case q"bcd" => "cde".parse[Term].get }
+  //   val s1 = "if (x) { cde + cde } else z"
+
+  //   assert(s1 == res3.toString)
+  // }
+
+  // test("test17") {
+  //   val tree0 = """
+  //   if (/* hello */ x) {
+  //     y
+  //   } else {
+  //      z
+  //   }""".parse[Term].get
+  //   val res1 = tree0 transform { case q"y" => "/* some comment */ x + foo".parse[Term].get }
+  //   val res2 = res1 transform { case q"foo" => "yes".parse[Term].get }
+  //   val res3 = res2 transform { case q"z" => "foo + (x map y)".parse[Term].get }
+  //   val s1 = """
+  //   if (/* hello */ x) {
+  //     /* some comment */ x + yes
+  //   } else {
+  //      foo + (x map y)
+  //   }"""
+
+  //   assert(s1 == res3.toString)
+  // }
+
+  test("test18") {
     val tree0 = """
-    class C(x: Int) {
-      def foo = bar
-      def foo = baz
-      val x = 1
+    x match {
+      case y => { foo1; foo2 }
     }
-    """.parse[Stat].get
-    val result1 = tree0 transform { case q"val x = 1" => """x match { case 1 => 2 }""".parse[Term].get }
-    val result2 = result1 transform { case q"x" => "y".parse[Term].get }
+    """.parse[Term].get
+    val res1 = tree0 transform { case q"foo1" => "foo3".parse[Term].get }
+    val res2 = res1 transform { case q"foo3" => "foo1".parse[Term].get }
     val s1 = """
-    class C(y: Int) {
-      def foo = bar
-      def foo = baz
-      y match { case 1 => 2 }
+    x match {
+      case y => { foo1; foo2 }
     }
     """
 
-    assert(s1 == result2.toString)
+    assert(s1 == res2.toString)
   }
-
-  test("test15") {
-    val tree0 = "abc".parse[Term].get
-    val res1 = tree0 transform { case q"abc" => "(x map y).foo".parse[Term].get }
-    val res2 = res1 transform { case q"x" => "z".parse[Term].get }
-    val res3 = res2 transform { case q"y" => "(y +  y  )".parse[Term].get }
-    val res4 = res3 transform { case q"y" => "a".parse[Term].get }
-    val res5 = res4 transform { case q"a" => "b".parse[Term].get }
-    val s1 = "(z map (b +  b  )).foo"
-
-    assert(s1 == res5.toString)
-  }
-
-  test("test16") {
-    val tree0 = "if (x) y else z".parse[Term].get
-    val res1 = tree0 transform { case q"y" => "{ abc + abc }".parse[Term].get }
-    val res2 = res1 transform { case q"abc" => "bcd".parse[Term].get }
-    val res3 = res2 transform { case q"bcd" => "cde".parse[Term].get }
-    val s1 = "if (x) { cde + cde } else z"
-
-    assert(s1 == res3.toString)
-  }
-
-  test("test17") {
-    val tree0 = """
-    if (/* hello */ x) {
-      y
-    } else {
-       z
-    }""".parse[Term].get
-    val res1 = tree0 transform { case q"y" => "/* some comment */ x + foo".parse[Term].get }
-    val res2 = res1 transform { case q"foo" => "yes".parse[Term].get }
-    val res3 = res2 transform { case q"z" => "foo + (x map y)".parse[Term].get }
-    val s1 = """
-    if (/* hello */ x) {
-      /* some comment */ x + yes
-    } else {
-       foo + (x map y)
-    }"""
-
-    assert(s1 == res3.toString)
-  }  
 }

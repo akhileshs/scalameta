@@ -631,6 +631,12 @@ object TreeSyntax {
                           }
                         case Term.ApplyInfix(_, _, _, _) =>
                           sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.end.offset - pos + 1)
+                        case Case(_, _, expr) =>
+                          expr match {
+                            case Term.Block(_) =>
+                            case _ =>
+                              if (updateTree(y0).pos.input.chars(0) != '{') sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                          }
                         case _ =>
                           if (updateTree(y0).pos.input.chars(0) != '{') sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
                       }
@@ -651,16 +657,6 @@ object TreeSyntax {
           val x = updateTree(t)
           x match {
             case Case(_, _, _) => sb.appendAll(x.pos.input.chars, pos, x.pos.end.offset - pos)
-            case Term.Name(_) =>
-              // println("ENTERING TERM.NAME APPEND REMAINDER")
-              // println("X.POS: " + updateTree(x).pos)
-              // println("pos: " + pos)
-              // println("SB IS NOW: " + sb)
-              // println("x.parent.structure: " + x.parent.structure)
-              // x.parent match {
-              //   case Some(Term.ApplyInfix(_, _, _, _)) => sb.appendAll(x.pos.input.chars, x.pos.end.offset, x.pos.end.offset - pos - 1)
-              //   case _ =>
-              // }
             case _ => 
           }
         }
