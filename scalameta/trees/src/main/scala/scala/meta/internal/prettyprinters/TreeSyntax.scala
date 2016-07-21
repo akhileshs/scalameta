@@ -592,7 +592,7 @@ object TreeSyntax {
                     (updateTree(y0).pos.input.chars != updateTree(orig).pos.input.chars)) {
                   (y0, y0.parent) match {
                     case (_, Some(Term.Block(stats))) =>
-                      sb.appendAll(updateTree(y0).pos.input.chars, 0, updateTree(y0).pos.start.offset)                      
+                      sb.appendAll(updateTree(y0).pos.input.chars, 0, updateTree(y0).pos.start.offset)
                       pos += (updateTree(y0).pos.start.offset - pos)
                     case (_, Some(Defn.Val(_, _, _, _))) => pos += (updateTree(y0).pos.start.offset)
                     case (_, Some(Defn.Var(_, _, _, _))) => pos += (updateTree(y0).pos.start.offset)
@@ -625,12 +625,22 @@ object TreeSyntax {
                         case Pat.Var.Term(_) =>
                         case Term.Name(_) =>
                           x.parent match {
-                            case Some(Term.ApplyInfix(_, _, _, _)) =>
-                              if (updateTree(y0).pos.input.chars(0) != '{') sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                            case Some(Term.ApplyInfix(_, _, _, args)) =>
+                              if (updateTree(x).pos.input.chars(0) == '(') {
+                                sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                              }
+                              else {
+                                x.parent.get.parent match {
+                                  case Some(Term.ApplyInfix(_, _, _, _)) =>                                   
+                                    if (updateTree(x.parent.get.parent.get).pos.input.chars(0) != '{') {
+                                      sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.input.chars.length - pos)
+                                    }                                 
+                                  case _ =>
+                                }
+                              }
                             case _ =>
                           }
-                        case Term.ApplyInfix(_, _, _, _) =>
-                          sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.end.offset - pos + 1)
+                        case Term.ApplyInfix(_, _, _, _) => sb.appendAll(updateTree(y0).pos.input.chars, pos, updateTree(y0).pos.end.offset - pos + 1)
                         case Case(_, _, expr) =>
                           expr match {
                             case Term.Block(_) =>
