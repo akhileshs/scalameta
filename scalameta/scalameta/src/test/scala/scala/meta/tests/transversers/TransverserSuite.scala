@@ -56,9 +56,7 @@ class TransverserSuite extends FunSuite {
       |???
     """.trim.stripMargin)
   }
-   
 
-  
   // test("Transformer Ok") {
   //   val tree0 = q"""
   //     def foo(x: x)(x: Int) = x + x
@@ -476,13 +474,13 @@ class TransverserSuite extends FunSuite {
   // //   assert(s2 == result2.toString)
   // // }
 
-  test("placeholder test") {
-    val tree0 = "_".parse[Term].get
-    val result1 = tree0 transform { case q"_" => q"a" }
-    val s1 = "a"
+  // test("placeholder test") {
+  //   val tree0 = "_".parse[Term].get
+  //   val result1 = tree0 transform { case q"_" => q"a" }
+  //   val s1 = "a"
 
-    assert(s1 == result1.toString)
-  }
+  //   assert(s1 == result1.toString)
+  // }
 
   test("eta test") {
     val tree0 = "foo _".parse[Term].get
@@ -632,7 +630,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result1.toString)
   }
   
-  test("test1") {
+  test("infix + rename transform") {
     val tree0 = "def foo(bar: Int) = baz".parse[Stat].get
     val result1 = tree0 transform { case q"baz" => "baz + baz".parse[Term].get }
     val result2 = result1 transform { case q"baz" => "bar".parse[Term].get }
@@ -641,7 +639,7 @@ class TransverserSuite extends FunSuite {
   }
   
   
-  test("test2") {
+  test("simple change to block") {
     val tree0 = "if (x) y else z".parse[Term].get
     val result1 = tree0 transform { case q"x" => "{ a }".parse[Term].get }
     val result2 = result1 transform { case q"a" => "b".parse[Term].get }
@@ -651,7 +649,7 @@ class TransverserSuite extends FunSuite {
 
   }
    
-  test("test3") {
+  test("basic def within a block") {
     val tree0 = "{ def foo(bar: Int) = baz }".parse[Term].get
     val result1 = tree0 transform { case q"baz" => "works".parse[Term].get }
     val s1 = "{ def foo(bar: Int) = works }"
@@ -659,7 +657,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result1.toString)
   }
    
-  test("test4") {
+  test("more tricky block transform") {
     val tree0 = "if (x) y else z".parse[Term].get
     val result1 = tree0 transform { case q"y" => "{ a + a }".parse[Term].get }
     // val result2 = result1 transform { case q"a" => "a + a".parse[Term].get }
@@ -672,7 +670,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result4.toString)
   }
   
-  test("test5") {
+  test("multiple statements within a block") {
     val tree0 = "if (x) y else z".parse[Term].get
     val result1 = tree0 transform { case q"y" => "{ foo1; foo2; foo3 }".parse[Term].get }
     val result2 = result1 transform { case q"foo1" => "works".parse[Term].get }
@@ -682,7 +680,7 @@ class TransverserSuite extends FunSuite {
   }
   
 
-  test("test6") {
+  test("preserve comments within a block") {
     val tree0 = "{         abc }".parse[Term].get
     val result1 = tree0 transform { case q"abc" => "bcdefg".parse[Term].get }
     val result2 = result1 transform { case q"bcdefg" => "asdf".parse[Term].get }
@@ -694,7 +692,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result4.toString)
   }
 
-  test("test7") {
+  test("change var to def statment") {
     val tree0 = "if (x) y else z".parse[Term].get
     val result1 = tree0 transform { case q"y" => "{                    abc }".parse[Term].get }
     val result2 = result1 transform { case q"abc" => "bcd".parse[Term].get }
@@ -707,7 +705,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result6.toString)
   }
 
-  test("test8") {
+  test("val test") {
     val tree0 = "y".parse[Term].get
     val result1 = tree0 transform { case q"y" => "{ val a = m }".parse[Term].get }
     val result2 = result1 transform { case q"val a = m" => "val j = a".parse[Stat].get }
@@ -717,7 +715,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result3.toString)
   }
 
-  test("test9") {
+  test("class test1") {
     val tree0 = "y".parse[Term].get
     val result1 = tree0 transform { case q"y" => "/* comment out */ class C(x: Int) { def foo = bar }".parse[Stat].get }
     val result2 = result1 transform { case q"def foo = bar" => "{ /* hello */ def foo = baz }".parse[Stat].get }
@@ -730,7 +728,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result5.toString)
   }
 
-  test("test10") {
+  test("transform stats within class") {
     val tree0 = "y".parse[Term].get
     val result1 = tree0 transform { case q"y" => "/* hello */ class C(x: Int) { def foo = bar; val x = baz }".parse[Stat].get }
     val result2 = result1 transform { case q"foo" => "baz".parse[Term].get }
@@ -742,7 +740,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result5.toString)
   }
 
-  test("test11") {
+  test("modify def test1") {
     val tree0 = "y".parse[Term].get
     val result1 = tree0 transform { case q"y" => "def foo = bar".parse[Stat].get }
     val result2 = result1 transform { case q"def foo = bar" => "def foo = baz".parse[Stat].get }
@@ -752,7 +750,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result3.toString)
   }
 
-  test("test12") {
+  test("modify def test2") {
     val tree0 = "{ def foo = bar }".parse[Term].get
     val result1 = tree0 transform { case q"def foo = bar" => "def foo = baz".parse[Stat].get }
     val result2 = result1 transform { case q"foo" => "bar".parse[Term].get }
@@ -763,7 +761,7 @@ class TransverserSuite extends FunSuite {
 
   }
 
-  test("test13") {
+  test("multiple match transform") {
     val tree0 = """
     x match {
       case a => b
@@ -784,7 +782,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result2.toString)
   }
 
-  test("test14") {
+  test("change stats within a class to match expr") {
     val tree0 = """
     class C(x: Int) {
       def foo = bar
@@ -805,7 +803,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == result2.toString)
   }
 
-  test("test15") {
+  test("tricky infix transform") {
     val tree0 = "abc".parse[Term].get
     val res1 = tree0 transform { case q"abc" => "(x map y).foo".parse[Term].get }
     val res2 = res1 transform { case q"x" => "z".parse[Term].get }
@@ -817,7 +815,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == res5.toString)
   }
 
-  test("test16") {
+  test("infix + block multiple transform") {
     val tree0 = "if (x) y else z".parse[Term].get
     val res1 = tree0 transform { case q"y" => "{ abc + abc }".parse[Term].get }
     val res2 = res1 transform { case q"abc" => "bcd".parse[Term].get }
@@ -827,7 +825,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == res3.toString)
   }
 
-  test("test17") {
+  test("preserve comment within unrelated transform") {
     val tree0 = """
     if (/* hello */ x) {
       y
@@ -847,7 +845,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == res3.toString)
   }
 
-  test("test18") {
+  test("multiple stats in the result of match") {
     val tree0 = """
     x match {
       case y => { foo1; foo2 }
@@ -864,7 +862,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == res2.toString)
   }
 
-  test("test19") {
+  test("more infix trickiness1") {
     val tree0 = "if (x) y else z".parse[Term].get
     val res1 = tree0 transform { case q"y" => "{ a }".parse[Term].get }
     val res2 = res1 transform { case q"a" => "b + b + { b }".parse[Term].get }
@@ -875,7 +873,7 @@ class TransverserSuite extends FunSuite {
     assert(s1 == res4.toString)
   }
 
-  test("tricky infix transform") {
+  test("more infix trickiness2") {
     val tree0 = "if (x) y else z".parse[Term].get
     val res1 = tree0 transform { case q"y" => "{ (x map y).foo }".parse[Term].get }
     val res2 = res1 transform { case q"y" => "(y + y)".parse[Term].get }
@@ -885,6 +883,87 @@ class TransverserSuite extends FunSuite {
     assert(s1 == res3.toString)
   }
 
-  /* some non-trivial refactorings coming up */
+  // some non-trivial refactorings coming up
+  // examples taken from Mirko Stocker's thesis.
+  test("attach types to methods") {
+    val tree0 = "def foo(bar: Int) = bar".parse[Stat].get
+    val res1 = tree0 transform { case tree0 => "/* some comment */ def foo(bar: Int): Int = baz".parse[Stat].get }
+    val res2 = res1 transform { case q"baz" => "baz + { foo }".parse[Term].get }
+    val res3 = res2 transform { case q"foo" => "baz".parse[Term].get }
+    val res4 = res3 transform { case q"baz" => "foo".parse[Term].get }
+    val s1 = "/* some comment */ def foo(bar: Int): Int = foo + { foo }"
 
+    assert(s1 == res4.toString)
+  }
+
+  test("extract local (ish) rewrite") {
+    val tree0 = """
+    def main(args: Array[String]) {
+      /* detecing OS */
+      println("Detecting OS..")
+      val props = System.getProperties
+
+      if( props.get("os.name") == "Linux" ) {
+        println("We’re on Linux!")
+      } else { println("We’re not on Linux!") }
+    }""".parse[Stat].get
+    val res1 = tree0 transform { case tree0 =>
+      """
+    def main(args: Array[String]) {
+      /* detecting OS */
+      println("Detecting OS..")
+      val props = System.getProperties
+      val isLinux = props.get("os.name") == "Linux"
+
+      if( isLinux ) {
+        println("We’re on Linux!")
+      } else { println("We’re not on Linux!") }
+    }""".parse[Stat].get }
+
+    val res2 = res1 transform { case q"isLinux" => "isMac".parse[Term].get }
+    val res3 = res2 transform { case q"isMac" => "isLinux".parse[Term].get }
+
+    val s1 =   """
+    def main(args: Array[String]) {
+      /* detecting OS */
+      println("Detecting OS..")
+      val props = System.getProperties
+      val isLinux = props.get("os.name") == "Linux"
+
+      if( isLinux ) {
+        println("We’re on Linux!")
+      } else { println("We’re not on Linux!") }
+    }"""
+
+    assert(s1 == res3.toString)
+  }
+
+  test("inline local (ish) rewrite") {
+    val tree0 = """
+    class Extr2 {
+      def m {
+        val five = 5 toString ;
+        println(five)
+        five + " is the answer"
+      }
+    }""".parse[Stat].get
+    val res1 = tree0 transform { case tree0 =>
+      """
+      class Extr2 {
+        def m {
+          println(5 toString)
+          (5 toString) + " is the answer"
+        }
+      }""".parse[Stat].get }
+    val res2 = res1 transform { case q"5" => "(5 + 5)".parse[Term].get }
+    val s1 = """
+      class Extr2 {
+        def m {
+          println((5 + 5) toString)
+          ((5 + 5) toString) + " is the answer"
+        }
+      }"""
+
+    assert(s1 == res2.toString)
+  }
 }
