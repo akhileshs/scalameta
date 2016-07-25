@@ -463,24 +463,24 @@ class TransverserSuite extends FunSuite {
     assert(s3 == result3.toString)
   }
 
-  // // test("new test") {
-  // //   val tree0 = "new Foo { val x = 1 }".parse[Term].get
-  // //   val result1 = tree0 transform { case q"x" => q"y" }
-  // //   val result2 = tree0 transform { case q"Foo" => q"Bar" }
-  // //   val s1 = "new Foo { val y = 1 }"
-  // //   val s2 = "new Bar { val x = 1 }"
-
-  // //   assert(s1 == result1.toString)
-  // //   assert(s2 == result2.toString)
-  // // }
-
-  // test("placeholder test") {
-  //   val tree0 = "_".parse[Term].get
-  //   val result1 = tree0 transform { case q"_" => q"a" }
-  //   val s1 = "a"
+  // test("new test") {
+  //   val tree0 = "new Foo { val x = 1 }".parse[Term].get
+  //   val result1 = tree0 transform { case q"x" => q"y" }
+  //   val result2 = tree0 transform { case q"Foo" => q"Bar" }
+  //   val s1 = "new Foo { val y = 1 }"
+  //   val s2 = "new Bar { val x = 1 }"
 
   //   assert(s1 == result1.toString)
+  //   assert(s2 == result2.toString)
   // }
+
+  test("placeholder test") {
+    val tree0 = "_".parse[Term].get
+    val result1 = tree0 transform { case q"_" => q"a" }
+    val s1 = "a"
+
+    assert(s1 == result1.toString)
+  }
 
   test("eta test") {
     val tree0 = "foo _".parse[Term].get
@@ -952,18 +952,166 @@ class TransverserSuite extends FunSuite {
       class Extr2 {
         def m {
           println(5 toString)
-          (5 toString) + " is the answer"
+          (5 toString) + "is the answer"
         }
       }""".parse[Stat].get }
     val res2 = res1 transform { case q"5" => "(5 + 5)".parse[Term].get }
+    val res3 = res2 transform { case q"5" => "(6 - 1)".parse[Term].get }
     val s1 = """
       class Extr2 {
         def m {
-          println((5 + 5) toString)
-          ((5 + 5) toString) + " is the answer"
+          println(((6 - 1) + (6 - 1)) toString)
+          (((6 - 1) + (6 - 1)) toString) + "is the answer"
         }
       }"""
 
+    assert(s1 == res3.toString)
+  }
+
+  test("throw with parens") {
+    val tree0 = """def m { y }""".parse[Stat].get
+    val res1 = tree0 transform { case q"y" => "(throw x)".parse[Term].get }
+    val res2 = res1 transform { case q"x" => "y".parse[Term].get }
+    val s1 = """def m { (throw y) }"""
+
     assert(s1 == res2.toString)
+  }
+
+  test("if/throw") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "(throw y)".parse[Term].get }
+    val res2 = res1 transform { case q"y" => "b".parse[Term].get }
+    val s1 = "if (x) (throw b) else z"
+
+    assert(s1 == res2.toString)
+  }
+
+  test("if/fn apply") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "f(a)".parse[Term].get }
+    val res2 = res1 transform { case q"a" => q"b" }
+    val res3 = res2 transform { case q"b" => q"c" }
+    val s1 = "if (x) f(c) else z"
+
+    assert(s1 == res3.toString)
+
+
+  }
+
+  test("infix + fn apply") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "f(y)".parse[Term].get }
+    val res2 = res1 transform { case q"y" => "y + y".parse[Term].get }
+    val res3 = res2 transform { case q"y" => q"c" }
+    val s1 = "if (x) f(c + c) else z"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("trait test") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "{ trait Foo[+T] { val bar = baz; val asdf = jklm } }".parse[Term].get }
+    val res2 = res1 transform { case q"bar" => q"abc" }
+    val res3 = res2 transform { case q"abc" => q"bcd" }
+    val s1 = "if (x) { trait Foo[+T] { val bcd = baz; val asdf = jklm } } else z"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("class test1111") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "{ class C(x: Int) }".parse[Term].get }
+    val res2 = res1 transform { case q"x" => q"y" }
+    val s1 = "if (y) { class C(y: Int) } else z"
+
+    assert(s1 == res2.toString)
+  }
+
+  test("tuple test multiple transform") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "(a, b)".parse[Term].get }
+    val res2 = res1 transform { case q"a" => q"c" }
+    val s1 = "if (x) (c, b) else z"
+
+    assert(s1 == res2.toString)
+  }
+
+  test("multiple try catch test") {
+    val tree0 = "a".parse[Term].get
+    val res1 = tree0 transform { case tree0 =>
+      """
+      try {
+        println(1)
+      } catch {
+        case e: Exception1 => x1
+      }""".parse[Term].get }
+    val res2 = res1 transform { case q"1" => q"2" }
+    val res3 = res2 transform { case q"2" => q"3" }
+    val s1 = """
+      try {
+        println(3)
+      } catch {
+        case e: Exception1 => x1
+      }"""
+    assert(s1 == res3.toString)
+  }
+
+  test("type test") {
+    val tree0 = "a".parse[Term].get
+    val res1 = tree0 transform { case tree0 => "trait Functor[F[_]]".parse[Stat].get }
+    val res2 = res1 transform { case t"F" => t"G" }
+    val res3 = res2 transform { case t"G" => t"H" }
+    val s1 = "trait Functor[H[_]]"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("close brackets match") {
+    val tree0 = "a".parse[Term].get
+    val res1 = tree0 transform { case tree0 =>
+      """
+      (x, y) match {
+        case (a: A, b: B) => z
+        case _ => nothing
+      }""".parse[Term].get }
+    val res2 = res1 transform { case q"a" => q"c" }
+    val res3 = res2 transform { case q"c" => q"d" }
+    // val res4 = res3 transform { case q"c" => q"d" }
+    val s1 =   """
+      (x, y) match {
+        case (d: A, b: B) => z
+        case _ => nothing
+      }"""
+
+    assert(s1 == res3.toString)
+  }
+
+  // // fails. 
+  // test("simple test") {
+  //   val tree0 = "/* hello */ a".parse[Term].get
+  //   val res1 = tree0 transform { case q"a" => q"b" }
+  //   val s1 = "/* hello */ b"
+
+  //   assert(s1 == res1.toString)
+  // }
+
+  test("anon fn test") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "{ (a: Int) => a + 1 }".parse[Term].get }
+    val res2 = res1 transform { case q"a" => q"b" }
+    val res3 = res2 transform { case q"b" => q"c" }
+    val s1 = "if (x) { (c: Int) => c + 1 } else z"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("type tuple multiple test") {
+    val tree0 = "if (x) y else z".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "{ def foo(bar: (A, B)) = ??? }".parse[Term].get }
+    val res2 = res1 transform { case t"A" => t"C" }
+    val res3 = res2 transform { case t"C" => t"D" }
+    val s1 = "if (x) { def foo(bar: (D, B)) = ??? } else z"
+
+    assert(s1 == res3.toString)
   }
 }
