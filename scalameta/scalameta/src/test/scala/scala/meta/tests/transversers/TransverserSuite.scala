@@ -57,29 +57,29 @@ class TransverserSuite extends FunSuite {
     """.trim.stripMargin)
   }
 
-  // test("Transformer Ok") {
-  //   val tree0 = q"""
-  //     def foo(x: x)(x: Int) = x + x
-  //     class C(x: x) {
-  //       def bar(x: x) = ???
-  //     }
-  //   """
-  //   val log = scala.collection.mutable.ListBuffer[String]()
-  //   object transformer extends Transformer {
-  //     override def apply(tree: Tree): Tree = tree match {
-  //       case Term.Name("x") => Term.Name("y")
-  //       case Type.Name("x") => Type.Name("y")
-  //       case _ => super.apply(tree)
-  //     }
-  //   }
-  //   val tree1 = transformer(tree0)
-  //   assert(tree1.toString === """
-  //     |{
-  //     |  def foo(y: y)(y: Int) = y + y
-  //     |  class C(y: y) { def bar(y: y) = ??? }
-  //     |}
-  //   """.trim.stripMargin)
-  // }
+  test("Transformer Ok") {
+    val tree0 = q"""
+      def foo(x: x)(x: Int) = x + x
+      class C(x: x) {
+        def bar(x: x) = ???
+      }
+    """
+    val log = scala.collection.mutable.ListBuffer[String]()
+    object transformer extends Transformer {
+      override def apply(tree: Tree): Tree = tree match {
+        case Term.Name("x") => Term.Name("y")
+        case Type.Name("x") => Type.Name("y")
+        case _ => super.apply(tree)
+      }
+    }
+    val tree1 = transformer(tree0).withOrigin(Origin.None)
+    assert(tree1.toString === """
+      |{
+      |  def foo(y: y)(y: Int) = y + y
+      |  class C(y: y) { def bar(y: y) = ??? }
+      |}
+    """.trim.stripMargin)
+  }
 
   test("Transformer Fail") {
     val tree0 = q"""
@@ -1113,5 +1113,75 @@ class TransverserSuite extends FunSuite {
     val s1 = "if (x) { def foo(bar: (D, B)) = ??? } else z"
 
     assert(s1 == res3.toString)
+  }
+
+  test("simple test") {
+    val tree0 = "a".parse[Term].get
+    val res1 = tree0 transform { case tree0 => "class C(x: Int)".parse[Stat].get }
+    val res2 = res1 transform { case q"x" => q"y" }
+    val res3 = res2 transform { case q"y" => q"z" }
+    val s1 = "class C(z: Int)"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("simple test1") {
+    val tree0 = "a".parse[Term].get
+    val res1 = tree0 transform { case q"a" => "def foo(bar: Int) = baz".parse[Stat].get }
+    val res2 = res1 transform { case q"bar" => q"baz" }
+    val res3 = res2 transform { case q"baz" => q"bar" }
+    val s1 = "def foo(bar: Int) = bar"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("simple test2") {
+    val tree0 = """
+    {
+      val x = 1
+      val y = 2
+      val z = 3
+    }""".parse[Term].get
+    val res1 = tree0 transform { case q"val y = 2" => "def foo = bar".parse[Stat].get }
+    val res2 = res1 transform { case q"bar" => q"abc" }
+    val s1 = """
+    {
+      val x = 1
+      def foo = abc
+      val z = 3
+    }"""
+
+    assert(s1 == res2.toString)
+  }
+
+  test("comment preserving test") {
+    val tree0 = "y".parse[Term].get
+    val res1 = tree0 transform { case q"y" => "def foo(bar: Int) = baz /* hello */".parse[Stat].get }
+    val res2 = res1 transform { case q"baz" => q"abc" }
+    val res3 = res2 transform { case q"abc" => q"bcd" }
+    val s1 = "def foo(bar: Int) = bcd /* hello */"
+
+    assert(s1 == res3.toString)
+  }
+
+  test("comment preserving test1") {
+    val tree0 = """
+    {
+      val x = 1
+      val y = 2
+      val z = 3
+    }""".parse[Term].get
+    val res1 = tree0 transform { case q"val y = 2" => "def foo = bar /* hello */".parse[Stat].get }
+    val res2 = res1 transform { case q"bar" => q"baz" }
+    val res3 = res2 transform { case q"baz" => q"bar" }
+    val res4 = res3 transform { case q"bar" => "baz + baz".parse[Term].get }
+    val s1 = """
+    {
+      val x = 1
+      def foo = baz + baz /* hello */
+      val z = 3
+    }"""
+
+    assert(s1 == res4.toString)
   }
 }
